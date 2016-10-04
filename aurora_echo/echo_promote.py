@@ -67,7 +67,7 @@ def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone
     util = EchoUtil(region, aws_account_number)
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_NEW_STAGE)
-    if found_instance:
+    if found_instance and found_instance['DBInstanceStatus'] == 'available':
         print('Found promotable instance: ', found_instance['DBInstanceIdentifier'])
         cluster_endpoint = found_instance['Endpoint']['Address']
         update_dns(hosted_zone_id, record_set, cluster_endpoint, ttl)
