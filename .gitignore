@@ -1,0 +1,41 @@
+
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+eggs/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEA project files
+*.iml
+*.ipr
+*.iws
+*.ids
+.idea/
+out/
+
+# Eclipse project files
+.settings/
+.classpath
+.project
+
+## generic files to ignore
+*~
+*.lock
+*.DS_Store
+*.swp
+*.out
+*.bak
+
+*.bz2
+*.pyc
+*.deb
