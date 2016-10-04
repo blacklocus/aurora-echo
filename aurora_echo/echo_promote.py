@@ -4,7 +4,7 @@ import boto3
 import click
 
 from aurora_echo.echo_const import ECHO_NEW_STAGE, ECHO_PROMOTE_STAGE, ECHO_RETIRE_STAGE
-from aurora_echo.echo_util import Util
+from aurora_echo.echo_util import EchoUtil
 from aurora_echo.entry import root
 
 rds = boto3.client('rds')
@@ -64,7 +64,7 @@ def update_dns(hosted_zone_id: str, record_set: str, cluster_endpoint: str, ttl:
 @click.option('--record_set', '-rs', required=True)
 @click.option('--ttl', default=60)
 def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone_id: str, record_set: str, ttl: str):
-    util = Util(region, aws_account_number)
+    util = EchoUtil(region, aws_account_number)
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_NEW_STAGE)
     if found_instance:

@@ -4,7 +4,7 @@ from pprint import pprint
 import boto3
 import click
 
-from aurora_echo.echo_util import Util
+from aurora_echo.echo_util import EchoUtil
 from aurora_echo.entry import root
 from aurora_echo.echo_const import ECHO_NEW_STAGE
 
@@ -110,7 +110,7 @@ def create_instance_in_cluster(restored_cluster_info: dict, new_instance_name: s
 def new(aws_account_number: str, region: str, cluster_snapshot_name: str, managed_name: str, db_subnet_group_name: str, db_instance_class: str,
         engine: str, availability_zone: str, vpc_security_group_id: list, tag: list, minimum_age_hours: int):
 
-    util = Util(region, aws_account_number)
+    util = EchoUtil(region, aws_account_number)
     if not util.instance_too_new(managed_name, minimum_age_hours):
 
         cluster_snapshot_identifier = find_snapshot(cluster_snapshot_name)

@@ -4,7 +4,7 @@ import boto3
 import click
 
 from aurora_echo.echo_const import ECHO_RETIRE_STAGE
-from aurora_echo.echo_util import Util
+from aurora_echo.echo_util import EchoUtil
 from aurora_echo.entry import root
 
 rds = boto3.client('rds')
@@ -36,7 +36,7 @@ def delete_instance(instance: dict):
 @click.option('--region', '-r', required=True)
 @click.option('--managed_name', '-n', required=True)
 def retire(aws_account_number: str, region: str, managed_name: str):
-    util = Util(region, aws_account_number)
+    util = EchoUtil(region, aws_account_number)
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_RETIRE_STAGE)
     if found_instance:

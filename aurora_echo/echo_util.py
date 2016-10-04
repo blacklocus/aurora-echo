@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 rds = boto3.client('rds')
 
 
-class Util(object):
+class EchoUtil(object):
 
     def __init__(self, region: str, account_number: str):
         self.region = region
@@ -15,15 +15,11 @@ class Util(object):
     def construct_arn(self, db_instance_identifier: str):
         return 'arn:aws:rds:%s:%s:db:%s' % (self.region, self.account_number, db_instance_identifier)
 
-    def construct_managed_tag(self, managed_name: str):
-        return 'aurora_echo:%s:managed' % managed_name
-
     def construct_stage_tag(self, managed_name: str):
         return 'aurora_echo:%s:stage' % managed_name
 
     def construct_managed_tag_set(self, managed_name: str, stage: str):
         tags = [
-            {'Key': self.construct_managed_tag(managed_name), 'Value': 'True'},  # TODO this tag is never read
             {'Key': self.construct_stage_tag(managed_name), 'Value': stage},
         ]
         return tags
