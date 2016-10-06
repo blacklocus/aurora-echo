@@ -1,4 +1,4 @@
-from pprint import pprint
+import json
 
 import boto3
 import click
@@ -12,23 +12,26 @@ rds = boto3.client('rds')
 
 def delete_instance(instance: dict):
     instance_identifier = instance['DBInstanceIdentifier']
-    cluster_identifier = instance['DBClusterIdentifier']
-    cluster_dict = {
-        'DBClusterIdentifier': cluster_identifier,
-        'SkipFinalSnapshot': True,
-    }
-    dict = {
+    instance_params = {
         'DBInstanceIdentifier': instance_identifier,
         'SkipFinalSnapshot': True,
     }
-    pprint(dict)  # show the user what we're passing in
-    pprint(cluster_dict)
+    
+    cluster_identifier = instance['DBClusterIdentifier']
+    cluster_params = {
+        'DBClusterIdentifier': cluster_identifier,
+        'SkipFinalSnapshot': True,
+    }
+    
+    click.echo('Parameters:')
+    click.echo(json.dumps(instance_params, indent=4, sort_keys=True))
+    click.echo(json.dumps(cluster_params, indent=4, sort_keys=True))
+    
     if click.confirm('Ready to DELETE/DESTROY/REMOVE this database instance '
                      'and cluster along with ALL AUTOMATED BACKUPS?', abort=True):
-        response = rds.delete_db_instance(**dict)
-        # pprint(response)
-        response = rds.delete_db_cluster(**cluster_dict)
-        # pprint(response)
+        # delete the instance first so the cluster is empty, otherwise it'll fail
+        response = rds.delete_db_instance(**instance_params)
+        response = rds.delete_db_cluster(**cluster_params)
 
 
 @root.command()
@@ -40,12 +43,12 @@ def retire(aws_account_number: str, region: str, managed_name: str):
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_RETIRE_STAGE)
     if found_instance:
-        print('Found instance ready for retirement: ', found_instance['DBInstanceIdentifier'])
+        click.echo('Found instance ready for retirement: {}'.format(found_instance['DBInstanceIdentifier']))
         delete_instance(found_instance)
 
-        print('Done!')
+        click.echo('Done!')
     else:
-        print('No instance found in state ', ECHO_RETIRE_STAGE)
+        click.echo('No instance found in stage {}'.format(ECHO_RETIRE_STAGE))
 
 
 if __name__ == '__main__':

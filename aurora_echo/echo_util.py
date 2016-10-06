@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 import boto3
+import click
 from dateutil.relativedelta import relativedelta
 
 rds = boto3.client('rds')
@@ -72,10 +73,11 @@ class EchoUtil(object):
 
         # TODO complain about too many managed instances?
         if instances_in_stage:
-            # choose most recent created time
-            sorted_instances = sorted(instances_in_stage, key=lambda inst: inst['InstanceCreateTime'], reverse=True)
-            print('Found instance in stage %s' % desired_stage)
-            return sorted_instances[0]
+            # choose most recent created time. Fun fact: instances only have the InstanceCreateTime field after creation
+            sorted_instances = sorted(instances_in_stage, key=lambda inst: inst.get('InstanceCreateTime'), reverse=True)
+            chosen_instance = sorted_instances[0]
+            click.echo('Found instance in stage {}: {}'.format(desired_stage, chosen_instance['DBInstanceIdentifier']))
+            return chosen_instance
 
     def instance_too_new(self, managed_name: str, min_age_in_hours: int):
         """
@@ -91,10 +93,10 @@ class EchoUtil(object):
         instance_list = self.find_managed_instances(managed_name)
         if instance_list:
             instances = [x[0] for x in instance_list]  # we don't care about tags, but we got tags
-            sorted_instances = sorted(instances, key=lambda inst: inst['InstanceCreateTime'], reverse=True)
+            sorted_instances = sorted(instances, key=lambda inst: inst.get('InstanceCreateTime'), reverse=True)
             instance_creation = sorted_instances[0]['InstanceCreateTime']
             # return True if it's too new
             return instance_creation > newest_allowed_date
         else:
-            print('No managed instances found')
+            click.echo('No managed instances found.')
             return False

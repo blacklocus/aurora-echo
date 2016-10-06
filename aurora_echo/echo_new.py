@@ -1,12 +1,12 @@
+import json
 from datetime import datetime
-from pprint import pprint
 
 import boto3
 import click
 
+from aurora_echo.echo_const import ECHO_NEW_STAGE
 from aurora_echo.echo_util import EchoUtil
 from aurora_echo.entry import root
-from aurora_echo.echo_const import ECHO_NEW_STAGE
 
 rds = boto3.client('rds')
 
@@ -22,7 +22,7 @@ def find_snapshot(cluster_name: str):
     sorted_snapshot_list = sorted(available_snapshots, key=lambda snap: snap['SnapshotCreateTime'], reverse=True)
     chosen_cluster_snapshot = sorted_snapshot_list[0]
 
-    print('Located cluster snapshot %s', chosen_cluster_snapshot['DBClusterSnapshotIdentifier'])  # TODO how does logging
+    click.echo('Located cluster snapshot {}'.format(chosen_cluster_snapshot['DBClusterSnapshotIdentifier']))
 
     return chosen_cluster_snapshot['DBClusterSnapshotIdentifier']
 
@@ -57,7 +57,7 @@ def restore_cluster(cluster_snapshot_identifier: str, new_cluster_name: str, db_
         OptionGroupName='string',
     """
 
-    pprint(params)  # TODO logging
+    click.echo(json.dumps(params, indent=4, sort_keys=True))
 
     # TODO make option to disable prompting
     if click.confirm('Ready to create cluster with these settings?', abort=True):
@@ -86,13 +86,12 @@ def create_instance_in_cluster(restored_cluster_info: dict, new_instance_name: s
     # Our tags indicating the instance is managed, plus optional user-defined tags
     params['Tags'] = tags  # a list of dicts
 
-    pprint(params)  # TODO logging
+    click.echo(json.dumps(params, indent=4, sort_keys=True))
 
-    # TODO prompt again? wait. maybe I should collect all params first, blahhhhh
+    # TODO Figure out a non-hideous way to do a single prompt with all params
+    # even though we need the cluster response in order to populate DBClusterIdentifier
     if click.confirm('Ready to create instance with these settings?', abort=True):
         response = rds.create_db_instance(**params)
-
-        pprint(response)
 
 
 @root.command()
@@ -124,6 +123,9 @@ def new(aws_account_number: str, region: str, cluster_snapshot_name: str, manage
 
         cluster = restore_cluster(cluster_snapshot_identifier, restore_cluster_name, db_subnet_group_name, engine, vpc_security_group_id, tag_set)
         create_instance_in_cluster(cluster, restore_cluster_name, engine, db_instance_class, availability_zone, tag_set)
-        print('Created new instance and cluster!')
+        click.echo('Created new cluster and instance!')
     else:
-        print('Found managed instance created less than %d hours ago. Not proceeding.'.format(minimum_age_hours))
+        click.echo('Found managed instance created less than {} hours ago. Not proceeding.'.format(minimum_age_hours))
+
+if __name__ == '__main__':
+    new()
