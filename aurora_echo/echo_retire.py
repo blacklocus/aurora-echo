@@ -3,7 +3,7 @@ import json
 import boto3
 import click
 
-from aurora_echo.echo_const import ECHO_RETIRE_STAGE
+from aurora_echo.echo_const import ECHO_RETIRE_COMMAND, ECHO_RETIRE_STAGE
 from aurora_echo.echo_util import EchoUtil
 from aurora_echo.entry import root
 
@@ -23,13 +23,13 @@ def delete_instance(instance: dict, interactive: bool):
         'SkipFinalSnapshot': True,
     }
     
-    click.echo('Parameters:')
+    click.echo('[{}] Parameters:'.format(ECHO_RETIRE_COMMAND))
     click.echo(json.dumps(instance_params, indent=4, sort_keys=True))
     click.echo(json.dumps(cluster_params, indent=4, sort_keys=True))
 
     if interactive:
-        click.confirm('Ready to DELETE/DESTROY/REMOVE this database instance '
-                     'and cluster along with ALL AUTOMATED BACKUPS?', abort=True)  # exits entirely if no
+        click.confirm('[{}] Ready to DELETE/DESTROY/REMOVE this database instance '
+                     'and cluster along with ALL AUTOMATED BACKUPS?'.format(ECHO_RETIRE_COMMAND), abort=True)  # exits entirely if no
 
     # delete the instance first so the cluster is empty, otherwise it'll fail
     response = rds.delete_db_instance(**instance_params)
@@ -46,12 +46,12 @@ def retire(aws_account_number: str, region: str, managed_name: str, interactive:
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_RETIRE_STAGE)
     if found_instance:
-        click.echo('Found instance ready for retirement: {}'.format(found_instance['DBInstanceIdentifier']))
+        click.echo('[{}] Found instance ready for retirement: {}'.format(ECHO_RETIRE_COMMAND, found_instance['DBInstanceIdentifier']))
         delete_instance(found_instance, interactive)
 
-        click.echo('Done!')
+        click.echo('[{}] Done!'.format(ECHO_RETIRE_COMMAND))
     else:
-        click.echo('No instance found in stage {}. Not proceeding.'.format(ECHO_RETIRE_STAGE))
+        click.echo('[{}] No instance found in stage {}. Not proceeding.'.format(ECHO_RETIRE_COMMAND, ECHO_RETIRE_STAGE))
 
 
 if __name__ == '__main__':

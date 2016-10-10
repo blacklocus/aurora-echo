@@ -22,7 +22,7 @@ def find_snapshot(cluster_name: str):
     sorted_snapshot_list = sorted(available_snapshots, key=lambda snap: snap['SnapshotCreateTime'], reverse=True)
     chosen_cluster_snapshot = sorted_snapshot_list[0]
 
-    click.echo('Located cluster snapshot {}'.format(chosen_cluster_snapshot['DBClusterSnapshotIdentifier']))
+    click.echo('[{}] Located cluster snapshot {}'.format(ECHO_NEW_STAGE, chosen_cluster_snapshot['DBClusterSnapshotIdentifier']))
 
     return chosen_cluster_snapshot['DBClusterSnapshotIdentifier']
 
@@ -86,13 +86,13 @@ def collect_instance_params(cluster_identifier: str, new_instance_name: str, eng
 
 
 def create_cluster_and_instance(cluster_params: dict, instance_params: dict, interactive: bool):
-    click.echo('Cluster settings:')
+    click.echo('[{}] Cluster settings:'.format(ECHO_NEW_STAGE))
     click.echo(json.dumps(cluster_params, indent=4, sort_keys=True))
-    click.echo('\nInstance settings:')
+    click.echo('\n[{}] Instance settings:'.format(ECHO_NEW_STAGE))
     click.echo(json.dumps(instance_params, indent=4, sort_keys=True))
 
     if interactive:
-        click.confirm('Ready to create cluster and instance with these settings?', abort=True)  # exits entirely if no
+        click.confirm('[{}] Ready to create cluster and instance with these settings?'.format(ECHO_NEW_STAGE), abort=True)  # exits entirely if no
 
     response = rds.restore_db_cluster_from_snapshot(**cluster_params)
 
@@ -101,7 +101,7 @@ def create_cluster_and_instance(cluster_params: dict, instance_params: dict, int
     instance_params['DBClusterIdentifier'] = cluster_identifier
     response = rds.create_db_instance(**instance_params)
 
-    click.echo('Success! Cluster and instance created.')
+    click.echo('[{}] Success! Cluster and instance created.'.format(ECHO_NEW_STAGE))
     click.echo(json.dumps(response, indent=4, sort_keys=True))
 
 
@@ -139,7 +139,7 @@ def new(aws_account_number: str, region: str, cluster_snapshot_name: str, manage
         create_cluster_and_instance(cluster_params, instance_params, interactive)
 
     else:
-        click.echo('Found managed instance created less than {} hours ago. Not proceeding.'.format(minimum_age_hours))
+        click.echo('[{}] Found managed instance created less than {} hours ago. Not proceeding.'.format(ECHO_NEW_STAGE, minimum_age_hours))
 
 if __name__ == '__main__':
     new()
