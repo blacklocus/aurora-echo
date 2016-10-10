@@ -87,16 +87,20 @@ class EchoUtil(object):
         :param min_age_in_hours: how many hours old is too old?
         :return: True if the database was created less than n hours ago and is therefore too new, False otherwise
         """
+
         today = datetime.now(timezone.utc)
         newest_allowed_date = today - relativedelta(hours=min_age_in_hours)
 
         instance_list = self.find_managed_instances(managed_name)
         if instance_list:
             instances = [x[0] for x in instance_list]  # we don't care about tags, but we got tags
-            sorted_instances = sorted(instances, key=lambda inst: inst.get('InstanceCreateTime'), reverse=True)
-            instance_creation = sorted_instances[0]['InstanceCreateTime']
-            # return True if it's too new
-            return instance_creation > newest_allowed_date
+            for instance in instances:
+                if instance['DBInstanceStatus'] == 'creating':
+                    return True  # an instance that is still spinning up falls under the category of "too new"
+                if instance['InstanceCreateTime'] > newest_allowed_date:
+                    return True  # instance was created too recently
+
         else:
-            click.echo('No managed instances found.')
-            return False
+            click.echo('No managed instances found under name {!r}.'.format(managed_name))
+
+        return False
