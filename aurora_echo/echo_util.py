@@ -38,7 +38,7 @@ class EchoUtil(object):
                 tag_list.append(tag_dict)
         return tag_list
 
-    def add_tag(self, managed_name: str, instance: dict, next_stage: str):
+    def add_stage_tag(self, managed_name: str, instance: dict, next_stage: str):
         resource_arn = self.construct_arn(instance['DBInstanceIdentifier'])
         tags = [
             {'Key': self.construct_stage_tag(managed_name), 'Value': next_stage},
