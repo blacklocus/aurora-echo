@@ -28,7 +28,7 @@ def find_snapshot(cluster_name: str):
 
 
 def restore_cluster(cluster_snapshot_identifier: str, new_cluster_name: str, db_subnet_group_name: str,
-                    engine: str, vpc_security_group_id: list, tags: list):
+                    engine: str, vpc_security_group_id: list, tags: list, interactive: bool):
     """
     Convert parameters into a dict of known values appropriate to be used in an RDS API call.
     :return: params
@@ -59,15 +59,16 @@ def restore_cluster(cluster_snapshot_identifier: str, new_cluster_name: str, db_
 
     click.echo(json.dumps(params, indent=4, sort_keys=True))
 
-    # TODO make option to disable prompting
-    if click.confirm('Ready to create cluster with these settings?', abort=True):
-        response = rds.restore_db_cluster_from_snapshot(**params)
+    if interactive:
+        click.confirm('Ready to create cluster with these settings?', abort=True)  # exits entirely if no
+
+    response = rds.restore_db_cluster_from_snapshot(**params)
 
     return response['DBCluster']
 
 
 def create_instance_in_cluster(restored_cluster_info: dict, new_instance_name: str, engine: str, db_instance_class: str,
-                               availability_zone: str, tags: list):
+                               availability_zone: str, tags: list, interactive: bool):
 
     cluster_identifier = restored_cluster_info['DBClusterIdentifier']
 
@@ -90,8 +91,11 @@ def create_instance_in_cluster(restored_cluster_info: dict, new_instance_name: s
 
     # TODO Figure out a non-hideous way to do a single prompt with all params
     # even though we need the cluster response in order to populate DBClusterIdentifier
-    if click.confirm('Ready to create instance with these settings?', abort=True):
-        response = rds.create_db_instance(**params)
+
+    if interactive:
+        click.confirm('Ready to create cluster with these settings?', abort=True)  # exits entirely if no
+
+    response = rds.create_db_instance(**params)
 
 
 @root.command()
@@ -106,8 +110,9 @@ def create_instance_in_cluster(restored_cluster_info: dict, new_instance_name: s
 @click.option('--vpc_security_group_id', '-sg', multiple=True)
 @click.option('--tag', '-t', multiple=True)
 @click.option('--minimum_age_hours', '-h', default=20)
+@click.option('--interactive', '-i', default=True, type=bool)
 def new(aws_account_number: str, region: str, cluster_snapshot_name: str, managed_name: str, db_subnet_group_name: str, db_instance_class: str,
-        engine: str, availability_zone: str, vpc_security_group_id: list, tag: list, minimum_age_hours: int):
+        engine: str, availability_zone: str, vpc_security_group_id: list, tag: list, minimum_age_hours: int, interactive: bool):
 
     util = EchoUtil(region, aws_account_number)
     if not util.instance_too_new(managed_name, minimum_age_hours):
@@ -121,8 +126,8 @@ def new(aws_account_number: str, region: str, cluster_snapshot_name: str, manage
         if user_tags:
             tag_set.extend(user_tags)
 
-        cluster = restore_cluster(cluster_snapshot_identifier, restore_cluster_name, db_subnet_group_name, engine, vpc_security_group_id, tag_set)
-        create_instance_in_cluster(cluster, restore_cluster_name, engine, db_instance_class, availability_zone, tag_set)
+        cluster = restore_cluster(cluster_snapshot_identifier, restore_cluster_name, db_subnet_group_name, engine, vpc_security_group_id, tag_set, interactive)
+        create_instance_in_cluster(cluster, restore_cluster_name, engine, db_instance_class, availability_zone, tag_set, interactive)
         click.echo('Created new cluster and instance!')
     else:
         click.echo('Found managed instance created less than {} hours ago. Not proceeding.'.format(minimum_age_hours))

@@ -10,7 +10,7 @@ from aurora_echo.entry import root
 rds = boto3.client('rds')
 
 
-def delete_instance(instance: dict):
+def delete_instance(instance: dict, interactive: bool):
     instance_identifier = instance['DBInstanceIdentifier']
     instance_params = {
         'DBInstanceIdentifier': instance_identifier,
@@ -26,25 +26,28 @@ def delete_instance(instance: dict):
     click.echo('Parameters:')
     click.echo(json.dumps(instance_params, indent=4, sort_keys=True))
     click.echo(json.dumps(cluster_params, indent=4, sort_keys=True))
-    
-    if click.confirm('Ready to DELETE/DESTROY/REMOVE this database instance '
-                     'and cluster along with ALL AUTOMATED BACKUPS?', abort=True):
-        # delete the instance first so the cluster is empty, otherwise it'll fail
-        response = rds.delete_db_instance(**instance_params)
-        response = rds.delete_db_cluster(**cluster_params)
+
+    if interactive:
+        click.confirm('Ready to DELETE/DESTROY/REMOVE this database instance '
+                     'and cluster along with ALL AUTOMATED BACKUPS?', abort=True)  # exits entirely if no
+
+    # delete the instance first so the cluster is empty, otherwise it'll fail
+    response = rds.delete_db_instance(**instance_params)
+    response = rds.delete_db_cluster(**cluster_params)
 
 
 @root.command()
 @click.option('--aws_account_number', '-a', required=True)
 @click.option('--region', '-r', required=True)
 @click.option('--managed_name', '-n', required=True)
-def retire(aws_account_number: str, region: str, managed_name: str):
+@click.option('--interactive', '-i', default=True, type=bool)
+def retire(aws_account_number: str, region: str, managed_name: str, interactive: bool):
     util = EchoUtil(region, aws_account_number)
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_RETIRE_STAGE)
     if found_instance:
         click.echo('Found instance ready for retirement: {}'.format(found_instance['DBInstanceIdentifier']))
-        delete_instance(found_instance)
+        delete_instance(found_instance, interactive)
 
         click.echo('Done!')
     else:

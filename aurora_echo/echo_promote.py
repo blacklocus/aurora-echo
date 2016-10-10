@@ -11,7 +11,7 @@ rds = boto3.client('rds')
 route53 = boto3.client('route53')
 
 
-def update_dns(hosted_zone_id: str, record_set: str, cluster_endpoint: str, ttl: str):
+def update_dns(hosted_zone_id: str, record_set: str, cluster_endpoint: str, ttl: str, interactive: bool):
 
     response = route53.list_resource_record_sets(HostedZoneId=hosted_zone_id)
     record_sets_list = response['ResourceRecordSets']
@@ -23,7 +23,7 @@ def update_dns(hosted_zone_id: str, record_set: str, cluster_endpoint: str, ttl:
         # print out the record we're replacing
         if our_record_set['ResourceRecords']:  # make sure it's actually pointed at something
             currently_set_endpoint = our_record_set['ResourceRecords'][0]['Value']
-        click.echo('Found record set which is currently pointed at {}'.format(currently_set_endpoint))
+        click.echo('Found record set {} currently pointed at {}'.format(our_record_set['Name'], currently_set_endpoint))
 
         params = {
                 'HostedZoneId': hosted_zone_id,
@@ -47,14 +47,18 @@ def update_dns(hosted_zone_id: str, record_set: str, cluster_endpoint: str, ttl:
                 }
         }
 
-        click.echo('Record set to be updated:')
-        click.echo(json.dumps(our_record_set, indent=4, sort_keys=True))
         click.echo('Parameters:')
         click.echo(json.dumps(params, indent=4, sort_keys=True))
 
+        if interactive:
+            click.confirm('Ready to update DNS record with these settings?', abort=True)  # exits entirely if no
+
         # update to the found instance endpoint
-        if click.confirm('Ready to update DNS record with these settings?', abort=True):
-            response = route53.change_resource_record_sets(**params)
+        response = route53.change_resource_record_sets(**params)
+
+    else:
+        click.echo('No record set found at hosted zone {} with name {}'.format(hosted_zone_id, record_set))
+        # TODO HEY THIS NEEDS TO STOP ALL DOWNSTREAM PROCESSING SO WE DON'T UPDATE TAGS
 
 
 @root.command()
@@ -64,14 +68,16 @@ def update_dns(hosted_zone_id: str, record_set: str, cluster_endpoint: str, ttl:
 @click.option('--hosted_zone_id', '-z', required=True)
 @click.option('--record_set', '-rs', required=True)
 @click.option('--ttl', default=60)
-def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone_id: str, record_set: str, ttl: str):
+@click.option('--interactive', '-i', default=True, type=bool)
+def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone_id: str, record_set: str, ttl: str,
+            interactive: bool):
     util = EchoUtil(region, aws_account_number)
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_NEW_STAGE)
     if found_instance and found_instance['DBInstanceStatus'] == 'available':
         click.echo('Found promotable instance: {}'.format(found_instance['DBInstanceIdentifier']))
         cluster_endpoint = found_instance['Endpoint']['Address']
-        update_dns(hosted_zone_id, record_set, cluster_endpoint, ttl)
+        update_dns(hosted_zone_id, record_set, cluster_endpoint, ttl, interactive)
 
         old_promoted_instance = util.find_instance_in_stage(managed_name, ECHO_PROMOTE_STAGE)
         if old_promoted_instance:
