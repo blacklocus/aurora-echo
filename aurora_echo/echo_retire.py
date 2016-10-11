@@ -9,9 +9,7 @@ from aurora_echo.entry import root
 
 rds = boto3.client('rds')
 
-
-def log_prefix():
-    return log_prefix_factory(ECHO_RETIRE_COMMAND)
+log_prefix = log_prefix_factory(ECHO_RETIRE_COMMAND)
 
 
 def delete_instance(instance: dict, interactive: bool):

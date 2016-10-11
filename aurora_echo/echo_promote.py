@@ -10,9 +10,7 @@ from aurora_echo.entry import root
 rds = boto3.client('rds')
 route53 = boto3.client('route53')
 
-
-def log_prefix():
-    return log_prefix_factory(ECHO_PROMOTE_COMMAND)
+log_prefix = log_prefix_factory(ECHO_PROMOTE_COMMAND)
 
 
 def find_record_set(hosted_zone_id: str, record_set_name: str):

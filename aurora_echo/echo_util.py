@@ -8,7 +8,9 @@ rds = boto3.client('rds')
 
 
 def log_prefix_factory(command_name: str):
-    return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), command_name)
+    def log_prefix():
+        return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), command_name)
+    return log_prefix
 
 
 class EchoUtil(object):

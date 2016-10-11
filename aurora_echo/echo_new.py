@@ -12,9 +12,7 @@ rds = boto3.client('rds')
 
 today_string = '{0:%Y-%m-%d}'.format(datetime.now(timezone.utc))
 
-
-def log_prefix():
-    return log_prefix_factory(ECHO_NEW_COMMAND)
+log_prefix = log_prefix_factory(ECHO_NEW_COMMAND)
 
 
 def find_snapshot(cluster_name: str):
