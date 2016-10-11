@@ -21,13 +21,12 @@ def find_snapshot(cluster_name: str):
     response = rds.describe_db_cluster_snapshots(DBClusterIdentifier=cluster_name)
     snapshot_list = response['DBClusterSnapshots']
     # sort/filter by newest and available
-    available_snapshots = [snap for snap in snapshot_list if snap['Status'] == 'available']
+    available_snapshots = [snap for snap in snapshot_list if snap['Status'] == 'available' and snap.get('SnapshotCreateTime')]
     sorted_snapshot_list = sorted(available_snapshots, key=lambda snap: snap['SnapshotCreateTime'], reverse=True)
-    chosen_cluster_snapshot = sorted_snapshot_list[0]
-
-    click.echo('{} Located cluster snapshot {}'.format(log_prefix(), chosen_cluster_snapshot['DBClusterSnapshotIdentifier']))
-
-    return chosen_cluster_snapshot['DBClusterSnapshotIdentifier']
+    if sorted_snapshot_list:
+        chosen_cluster_snapshot = sorted_snapshot_list[0]
+        click.echo('{} Located cluster snapshot {}'.format(log_prefix(), chosen_cluster_snapshot['DBClusterSnapshotIdentifier']))
+        return chosen_cluster_snapshot['DBClusterSnapshotIdentifier']
 
 
 def collect_cluster_params(cluster_snapshot_identifier: str, new_cluster_name: str, db_subnet_group_name: str,
@@ -128,18 +127,19 @@ def new(aws_account_number: str, region: str, cluster_snapshot_name: str, manage
     if not util.instance_too_new(managed_name, minimum_age_hours):
 
         cluster_snapshot_identifier = find_snapshot(cluster_snapshot_name)
+        if cluster_snapshot_identifier:
+            restore_cluster_name = managed_name + '-' + today_string
 
-        restore_cluster_name = managed_name + '-' + today_string
+            tag_set = util.construct_managed_tag_set(managed_name, ECHO_NEW_STAGE)
+            user_tags = util.construct_user_tag_set(tag)
+            if user_tags:
+                tag_set.extend(user_tags)
 
-        tag_set = util.construct_managed_tag_set(managed_name, ECHO_NEW_STAGE)
-        user_tags = util.construct_user_tag_set(tag)
-        if user_tags:
-            tag_set.extend(user_tags)
-
-        # collect parameters up front so we only have to prompt the user once
-        cluster_params = collect_cluster_params(cluster_snapshot_identifier, restore_cluster_name, db_subnet_group_name, engine, vpc_security_group_id, tag_set)
-        instance_params = collect_instance_params(restore_cluster_name, restore_cluster_name, engine, db_instance_class, availability_zone, tag_set)  # instance and cluster names are the same
-        create_cluster_and_instance(cluster_params, instance_params, interactive)
-
+            # collect parameters up front so we only have to prompt the user once
+            cluster_params = collect_cluster_params(cluster_snapshot_identifier, restore_cluster_name, db_subnet_group_name, engine, vpc_security_group_id, tag_set)
+            instance_params = collect_instance_params(restore_cluster_name, restore_cluster_name, engine, db_instance_class, availability_zone, tag_set)  # instance and cluster names are the same
+            create_cluster_and_instance(cluster_params, instance_params, interactive)
+        else:
+            click.echo('{} No cluster snapshots found with name {}. Not proceeding.'.format(log_prefix(), cluster_snapshot_name))
     else:
         click.echo('{} Found managed instance created less than {} hours ago. Not proceeding.'.format(log_prefix(), minimum_age_hours))
