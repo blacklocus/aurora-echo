@@ -44,6 +44,7 @@ def delete_instance(instance: dict, interactive: bool):
 @click.option('--managed_name', '-n', required=True)
 @click.option('--interactive', '-i', default=True, type=bool)
 def retire(aws_account_number: str, region: str, managed_name: str, interactive: bool):
+    click.echo('{} Starting aurora-echo'.format(log_prefix()))
     util = EchoUtil(region, aws_account_number)
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_RETIRE_STAGE)

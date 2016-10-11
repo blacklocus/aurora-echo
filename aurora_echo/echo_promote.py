@@ -73,6 +73,7 @@ def update_dns(hosted_zone_id: str, record_set: dict, cluster_endpoint: str, ttl
 @click.option('--interactive', '-i', default=True, type=bool)
 def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone_id: str, record_set: str, ttl: str,
             interactive: bool):
+    click.echo('{} Starting aurora-echo'.format(log_prefix()))
     util = EchoUtil(region, aws_account_number)
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_NEW_STAGE)
