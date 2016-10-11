@@ -1,0 +1,4 @@
+boto3==1.3.0
+botocore==1.4.10
+certifi==2015.4.28
+click==6.6
