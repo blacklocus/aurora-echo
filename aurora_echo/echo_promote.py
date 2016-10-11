@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import json
 
 import boto3
@@ -9,6 +10,9 @@ from aurora_echo.entry import root
 
 rds = boto3.client('rds')
 route53 = boto3.client('route53')
+
+
+def log(): return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), ECHO_PROMOTE_COMMAND)
 
 
 def find_record_set(hosted_zone_id: str, record_set_name: str):
@@ -26,7 +30,7 @@ def update_dns(hosted_zone_id: str, record_set: dict, cluster_endpoint: str, ttl
     currently_set_endpoint = 'nothing'
     if record_set['ResourceRecords']:
         currently_set_endpoint = record_set['ResourceRecords'][0]['Value']
-    click.echo('[{}] Found record set {} currently pointed at {}'.format(ECHO_PROMOTE_COMMAND, record_set['Name'], currently_set_endpoint))
+    click.echo('{} Found record set {} currently pointed at {}'.format(log(), record_set['Name'], currently_set_endpoint))
 
     params = {
         'HostedZoneId': hosted_zone_id,
@@ -50,15 +54,15 @@ def update_dns(hosted_zone_id: str, record_set: dict, cluster_endpoint: str, ttl
         }
     }
 
-    click.echo('[{}] Parameters:'.format(ECHO_PROMOTE_COMMAND))
+    click.echo('{} Parameters:'.format(log()))
     click.echo(json.dumps(params, indent=4, sort_keys=True))
 
     if interactive:
-        click.confirm('[{}] Ready to update DNS record with these settings?'.format(ECHO_PROMOTE_COMMAND), abort=True)  # exits entirely if no
+        click.confirm('{} Ready to update DNS record with these settings?'.format(log()), abort=True)  # exits entirely if no
 
     # update to the found instance endpoint
     response = route53.change_resource_record_sets(**params)
-    click.echo('[{}] Success! DNS updated.'.format(ECHO_PROMOTE_COMMAND))
+    click.echo('{} Success! DNS updated.'.format(log()))
 
 
 @root.command()
@@ -75,7 +79,7 @@ def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_NEW_STAGE)
     if found_instance and found_instance['DBInstanceStatus'] == 'available':
-        click.echo('[{}] Found promotable instance: {}'.format(ECHO_PROMOTE_COMMAND, found_instance['DBInstanceIdentifier']))
+        click.echo('{} Found promotable instance: {}'.format(log(), found_instance['DBInstanceIdentifier']))
         cluster_endpoint = found_instance['Endpoint']['Address']
 
         record_set_dict = find_record_set(hosted_zone_id, record_set)
@@ -84,17 +88,17 @@ def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone
 
             old_promoted_instance = util.find_instance_in_stage(managed_name, ECHO_PROMOTE_STAGE)
             if old_promoted_instance:
-                click.echo('[{}] Retiring old instance: {}'.format(ECHO_PROMOTE_COMMAND, old_promoted_instance['DBInstanceIdentifier']))
+                click.echo('{} Retiring old instance: {}'.format(log(), old_promoted_instance['DBInstanceIdentifier']))
                 util.add_stage_tag(managed_name, old_promoted_instance, ECHO_RETIRE_STAGE)
 
-            click.echo('[{}] Updating tag for promoted instance: {}'.format(ECHO_PROMOTE_COMMAND, found_instance['DBInstanceIdentifier']))
+            click.echo('{} Updating tag for promoted instance: {}'.format(log(), found_instance['DBInstanceIdentifier']))
             util.add_stage_tag(managed_name, found_instance, ECHO_PROMOTE_STAGE)
 
-            click.echo('[{}] Done!'.format(ECHO_PROMOTE_COMMAND))
+            click.echo('{} Done!'.format(log()))
         else:
-            click.echo('[{}] No record set found at hosted zone {} with name {}. Unable to promote instance.'.format(ECHO_PROMOTE_COMMAND, hosted_zone_id, record_set))
+            click.echo('{} No record set found at hosted zone {} with name {}. Unable to promote instance.'.format(log(), hosted_zone_id, record_set))
     else:
-        click.echo('[{}] No instance found in stage {} with status \'available\'. Not proceeding.'.format(ECHO_PROMOTE_COMMAND, ECHO_NEW_STAGE))
+        click.echo('{} No instance found in stage {} with status \'available\'. Not proceeding.'.format(log(), ECHO_NEW_STAGE))
 
 
 if __name__ == '__main__':
