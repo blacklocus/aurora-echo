@@ -106,6 +106,8 @@ TODO sample usage
   - e.g. `us-east-1`
 - `-n, --managed_name [required]`
   - The managed name tracking the instance you want to retire. This is the same as the `-managed_name` parameter used in previous steps.
+- `--help`
+  - Show options and exit.
 
 
 ## Notes!

@@ -32,6 +32,13 @@ def collect_cluster_params(cluster_snapshot_identifier: str, new_cluster_name: s
                            engine: str, vpc_security_group_id: list, tags: list):
     """
     Convert parameters into a dict of known values appropriate to be used in an RDS API call.
+
+    Optional inputs we do not use and therefore do not support yet
+        EngineVersion='string',
+        Port=123,
+        DatabaseName='string',
+        OptionGroupName='string',
+
     :return: params
     """
 
@@ -50,13 +57,6 @@ def collect_cluster_params(cluster_snapshot_identifier: str, new_cluster_name: s
     # Our tags indicating the instance is managed, plus optional user-defined tags
     params['Tags'] = tags  # a list of dicts
 
-    # Optional inputs we do not use and therefore do not support yet
-    """
-        EngineVersion='string',
-        Port=123,
-        DatabaseName='string',
-        OptionGroupName='string',
-    """
 
     return params
 
