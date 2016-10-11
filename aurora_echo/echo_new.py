@@ -13,7 +13,7 @@ rds = boto3.client('rds')
 today_string = '{0:%Y-%m-%d}'.format(datetime.now(timezone.utc))
 
 
-def log(): return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), ECHO_NEW_COMMAND)
+def log_prefix(): return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), ECHO_NEW_COMMAND)
 
 
 def find_snapshot(cluster_name: str):
@@ -25,7 +25,7 @@ def find_snapshot(cluster_name: str):
     sorted_snapshot_list = sorted(available_snapshots, key=lambda snap: snap['SnapshotCreateTime'], reverse=True)
     chosen_cluster_snapshot = sorted_snapshot_list[0]
 
-    click.echo('{} Located cluster snapshot {}'.format(log(), chosen_cluster_snapshot['DBClusterSnapshotIdentifier']))
+    click.echo('{} Located cluster snapshot {}'.format(log_prefix(), chosen_cluster_snapshot['DBClusterSnapshotIdentifier']))
 
     return chosen_cluster_snapshot['DBClusterSnapshotIdentifier']
 
@@ -89,13 +89,13 @@ def collect_instance_params(cluster_identifier: str, new_instance_name: str, eng
 
 
 def create_cluster_and_instance(cluster_params: dict, instance_params: dict, interactive: bool):
-    click.echo('{} Cluster settings:'.format(log()))
+    click.echo('{} Cluster settings:'.format(log_prefix()))
     click.echo(json.dumps(cluster_params, indent=4, sort_keys=True))
-    click.echo('\n{} Instance settings:'.format(log()))
+    click.echo('\n{} Instance settings:'.format(log_prefix()))
     click.echo(json.dumps(instance_params, indent=4, sort_keys=True))
 
     if interactive:
-        click.confirm('{} Ready to create cluster and instance with these settings?'.format(log()), abort=True)  # exits entirely if no
+        click.confirm('{} Ready to create cluster and instance with these settings?'.format(log_prefix()), abort=True)  # exits entirely if no
 
     response = rds.restore_db_cluster_from_snapshot(**cluster_params)
 
@@ -104,7 +104,7 @@ def create_cluster_and_instance(cluster_params: dict, instance_params: dict, int
     instance_params['DBClusterIdentifier'] = cluster_identifier
     response = rds.create_db_instance(**instance_params)
 
-    click.echo('{} Success! Cluster and instance created.'.format(log()))
+    click.echo('{} Success! Cluster and instance created.'.format(log_prefix()))
     click.echo(json.dumps(response, indent=4, sort_keys=True))
 
 
@@ -142,7 +142,4 @@ def new(aws_account_number: str, region: str, cluster_snapshot_name: str, manage
         create_cluster_and_instance(cluster_params, instance_params, interactive)
 
     else:
-        click.echo('{} Found managed instance created less than {} hours ago. Not proceeding.'.format(log(), minimum_age_hours))
-
-if __name__ == '__main__':
-    new()
+        click.echo('{} Found managed instance created less than {} hours ago. Not proceeding.'.format(log_prefix(), minimum_age_hours))

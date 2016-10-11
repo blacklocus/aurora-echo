@@ -11,7 +11,7 @@ from aurora_echo.entry import root
 rds = boto3.client('rds')
 
 
-def log(): return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), ECHO_RETIRE_COMMAND)
+def log_prefix(): return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), ECHO_RETIRE_COMMAND)
 
 
 def delete_instance(instance: dict, interactive: bool):
@@ -27,13 +27,13 @@ def delete_instance(instance: dict, interactive: bool):
         'SkipFinalSnapshot': True,
     }
     
-    click.echo('{} Parameters:'.format(log()))
+    click.echo('{} Parameters:'.format(log_prefix()))
     click.echo(json.dumps(instance_params, indent=4, sort_keys=True))
     click.echo(json.dumps(cluster_params, indent=4, sort_keys=True))
 
     if interactive:
         click.confirm('{} Ready to DELETE/DESTROY/REMOVE this database instance '
-                     'and cluster along with ALL AUTOMATED BACKUPS?'.format(log()), abort=True)  # exits entirely if no
+                     'and cluster along with ALL AUTOMATED BACKUPS?'.format(log_prefix()), abort=True)  # exits entirely if no
 
     # delete the instance first so the cluster is empty, otherwise it'll fail
     response = rds.delete_db_instance(**instance_params)
@@ -50,13 +50,9 @@ def retire(aws_account_number: str, region: str, managed_name: str, interactive:
 
     found_instance = util.find_instance_in_stage(managed_name, ECHO_RETIRE_STAGE)
     if found_instance:
-        click.echo('{} Found instance ready for retirement: {}'.format(log(), found_instance['DBInstanceIdentifier']))
+        click.echo('{} Found instance ready for retirement: {}'.format(log_prefix(), found_instance['DBInstanceIdentifier']))
         delete_instance(found_instance, interactive)
 
-        click.echo('{} Done!'.format(log()))
+        click.echo('{} Done!'.format(log_prefix()))
     else:
-        click.echo('{} No instance found in stage {}. Not proceeding.'.format(log(), ECHO_RETIRE_STAGE))
-
-
-if __name__ == '__main__':
-    retire()
+        click.echo('{} No instance found in stage {}. Not proceeding.'.format(log_prefix(), ECHO_RETIRE_STAGE))
