@@ -7,14 +7,12 @@ This tool assists in AWS RDS Aurora database lifecycle management. It is a compa
 ### What do?
 Use this tool to automatically restore an Aurora database cluster from a snapshot, promote it to live via DNS updates in Route53, and at EOL destroy the managed cluster.
 
-The three different stages here -- new, promote, retire -- can all be used independently of each other and run periodically without regard for timing of the other stages. This is because the commands are idempotent and the lifecycle stages are tracked on the database instances themselves via tags.
-Thus each command will only operate on a database that is tagged appropriately and exit cleanly if there is no database in the appropriate stage.
+The three different stages here -- new, promote, retire -- can all be run periodically without regard for timing of the other stages. This is because the commands are idempotent and the lifecycle stages are tracked on the database instances themselves via tags. Thus each command will only operate on a database that is tagged appropriately, and will exit cleanly if there is no database in the appropriate stage.
 
 Have multiple development databases? Aurora Echo allows management of unlimited independent lifecycles; just name them differently in configuration and don't worry about them interfering with each other.
 
 ## Stages
-This is our story: On a regular basis, restore the latest production snapshot to a new development instance, promote
-that instance to replace its former self, and then destroy the old instance.
+This is our story: On a regular basis, restore the latest production snapshot to a new development instance, promote that instance to replace its former self, and then destroy the old instance.
 
 Each `aurora_echo` command progresses a managed instance through a series of stages:
 
@@ -23,8 +21,7 @@ Each `aurora_echo` command progresses a managed instance through a series of sta
     - This also results in any previously **promoted** instance advancing to **retired**
   - **retired**  --`aurora_echo retire`-->  (non-existent)
 
-So in the straightforward case, each command is run in succession after the previous commands stabilize and leave the
-DB instance in the "available" state.
+So in the straightforward case, each command is run in succession after the previous commands stabilize and leave the DB instance in the "available" state.
 
 All state tracking metadata is stored as AWS resource tags on the cluster and instance.
 
@@ -64,11 +61,12 @@ TODO sample usage
 - `-az, --availability_zone`
   - e.g. `us-east-1c`. If not set, AWS defaults this to the region the parent snapshot is in.
 - `-sg, --vpc_security_group_id`
-  - Allows multiple inputs (use one option flag per input).
   - The ID of any security groups to assign to the created instance/cluster
-- `-t, --tag`
   - Allows multiple inputs (use one option flag per input).
-  - Any custom tags to assign to the cluster and instance along with the managed tags automatically assigned by Aurora Echo, e.g. `purple=true`
+- `-t, --tag`
+  - Any custom tags to assign to the cluster and instance, e.g. `purple=true`
+  - Custom tags will not interfere with, nor should include the Aurora Echo management tags
+  - Allows multiple inputs (use one option flag per input).
 - `-h, --minimum_age_hours`
   - If an existing managed instance has been created within the last `-h` hours, abort creation of a new instance. Defaults to 20.
 - `--help`
@@ -85,7 +83,7 @@ TODO sample usage
 - `-r, --region [required]`
   - e.g. `us-east-1`
 - `-n, --managed_name [required]`
-  - The managed name tracking the instance you want to promote. This is the same a the `-managed_name` parameter used in the `new` step.
+  - The managed name tracking the instance you want to promote. This is the same a the `--managed_name` parameter used in the `new` step.
 - `-z, --hosted_zone_id [required]`
   - The ID of the hosted zone containing the DNS record set to be updated
 - `-rs, --record_set [required]`
@@ -96,7 +94,7 @@ TODO sample usage
   - Show options and exit.
 
 
-### retire
+### `retire`
 - **What**: Delete a managed instance and cluster that is in the `retired` stage.
 - **How**: Look for a managed instance in RDS that is in the stage `retired` and delete the instance and its containing cluster. There is no option to make a final snapshot. All automated instance/cluster snapshots **will be deleted**.
 - **When**: You may want to run this periodically on a cron job. It will only operate when a managed instance is in the `retired` stage.
@@ -107,9 +105,8 @@ TODO sample usage
 - `-r, --region [required]`
   - e.g. `us-east-1`
 - `-n, --managed_name [required]`
-  - The managed name tracking the instance you want to retire. This is the same a the `-managed_name` parameter used in previous steps.
+  - The managed name tracking the instance you want to retire. This is the same as the `-managed_name` parameter used in previous steps.
 
 
 ## Notes!
 - This tool creates instances and clusters with today's date attached, such as `development-2016-10-05`. This combined with the previous-instance freshness check will prevent multiple instances from being created in a cluster.
-
