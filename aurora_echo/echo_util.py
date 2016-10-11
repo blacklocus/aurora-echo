@@ -7,7 +7,15 @@ from dateutil.relativedelta import relativedelta
 rds = boto3.client('rds')
 
 
+def log_prefix_factory(command_name: str):
+    return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), command_name)
+
+
 class EchoUtil(object):
+    """
+     General utilities, such as constructing tags, finding DB instances under a given managed name or stage,
+     and verifying age of existing instances. Initialize with account number and region.
+    """
 
     def __init__(self, region: str, account_number: str):
         self.region = region
@@ -27,14 +35,14 @@ class EchoUtil(object):
 
     def parse_user_tag(self, full_tag: str):
         split = full_tag.split('=', 1)
-        return split[0], split[1]
+        return split
 
     def construct_user_tag_set(self, tags: list):
         tag_list = []
         if tags:
             for t in tags:
                 k, v = self.parse_user_tag(t)
-                tag_dict = { 'Key': k, 'Value': v}
+                tag_dict = {'Key': k, 'Value': v}
                 tag_list.append(tag_dict)
         return tag_list
 

@@ -1,17 +1,17 @@
-from datetime import datetime, timezone
 import json
 
 import boto3
 import click
 
 from aurora_echo.echo_const import ECHO_RETIRE_COMMAND, ECHO_RETIRE_STAGE
-from aurora_echo.echo_util import EchoUtil
+from aurora_echo.echo_util import EchoUtil, log_prefix_factory
 from aurora_echo.entry import root
 
 rds = boto3.client('rds')
 
 
-def log_prefix(): return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), ECHO_RETIRE_COMMAND)
+def log_prefix():
+    return log_prefix_factory(ECHO_RETIRE_COMMAND)
 
 
 def delete_instance(instance: dict, interactive: bool):
@@ -32,8 +32,8 @@ def delete_instance(instance: dict, interactive: bool):
     click.echo(json.dumps(cluster_params, indent=4, sort_keys=True))
 
     if interactive:
-        click.confirm('{} Ready to DELETE/DESTROY/REMOVE this database instance '
-                     'and cluster along with ALL AUTOMATED BACKUPS?'.format(log_prefix()), abort=True)  # exits entirely if no
+        click.confirm('{} Ready to DELETE/DESTROY/REMOVE this database instance and cluster '
+                      'along with ALL AUTOMATED BACKUPS?'.format(log_prefix()), abort=True)  # exits entirely if no
 
     # delete the instance first so the cluster is empty, otherwise it'll fail
     response = rds.delete_db_instance(**instance_params)

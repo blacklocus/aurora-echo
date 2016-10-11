@@ -5,7 +5,7 @@ import boto3
 import click
 
 from aurora_echo.echo_const import ECHO_NEW_STAGE, ECHO_NEW_COMMAND
-from aurora_echo.echo_util import EchoUtil
+from aurora_echo.echo_util import EchoUtil, log_prefix_factory
 from aurora_echo.entry import root
 
 rds = boto3.client('rds')
@@ -13,7 +13,8 @@ rds = boto3.client('rds')
 today_string = '{0:%Y-%m-%d}'.format(datetime.now(timezone.utc))
 
 
-def log_prefix(): return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), ECHO_NEW_COMMAND)
+def log_prefix():
+    return log_prefix_factory(ECHO_NEW_COMMAND)
 
 
 def find_snapshot(cluster_name: str):

@@ -1,18 +1,18 @@
-from datetime import datetime, timezone
 import json
 
 import boto3
 import click
 
 from aurora_echo.echo_const import ECHO_NEW_STAGE, ECHO_PROMOTE_COMMAND, ECHO_PROMOTE_STAGE, ECHO_RETIRE_STAGE
-from aurora_echo.echo_util import EchoUtil
+from aurora_echo.echo_util import EchoUtil, log_prefix_factory
 from aurora_echo.entry import root
 
 rds = boto3.client('rds')
 route53 = boto3.client('route53')
 
 
-def log_prefix(): return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), ECHO_PROMOTE_COMMAND)
+def log_prefix():
+    return log_prefix_factory(ECHO_PROMOTE_COMMAND)
 
 
 def find_record_set(hosted_zone_id: str, record_set_name: str):
@@ -28,7 +28,7 @@ def find_record_set(hosted_zone_id: str, record_set_name: str):
 def update_dns(hosted_zone_id: str, record_set: dict, cluster_endpoint: str, ttl: str, interactive: bool):
     # print out the record we're replacing
     currently_set_endpoint = 'nothing'
-    if record_set['ResourceRecords']:
+    if record_set.get('ResourceRecords'):
         currently_set_endpoint = record_set['ResourceRecords'][0]['Value']
     click.echo('{} Found record set {} currently pointed at {}'.format(log_prefix(), record_set['Name'], currently_set_endpoint))
 
