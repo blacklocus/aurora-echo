@@ -27,14 +27,15 @@ All state tracking metadata is stored as AWS resource tags on the cluster and in
 
 
 ## Installation
-Aurora Echo is a command-line tool.
+Aurora Echo is a command-line tool that uses [Boto](https://github.com/boto/boto3). It has been tested on Ubuntu 15.04 with Python 3.4.3.
 
-You will need to set up AWS auth as per the [boto documentation](https://boto3.readthedocs.io/en/latest/guide/quickstart.html#configuration)
+You will need to set up AWS auth as per the [boto documentation](https://boto3.readthedocs.io/en/latest/guide/quickstart.html#configuration).
 
-TODO link to tagged release
-TODO installation instructions
-TODO sample usage
-
+Grab the latest version and set it to executable like so:
+```sh
+sudo curl -o /usr/local/bin/aurora-echo -L "https://github.com/blacklocus/aurora-echo/releases/download/v1.0.0/aurora-echo" && \
+sudo chmod +x /usr/local/bin/aurora-echo
+```
 
 ## Usage
 
