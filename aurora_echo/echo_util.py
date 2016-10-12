@@ -28,6 +28,8 @@ import boto3
 import click
 from dateutil.relativedelta import relativedelta
 
+from aurora_echo.echo_const import ECHO_MANAGEMENT_TAG_INDICATOR
+
 rds = boto3.client('rds')
 
 
@@ -48,10 +50,10 @@ class EchoUtil(object):
         self.account_number = account_number
 
     def construct_arn(self, db_instance_identifier: str):
-        return 'arn:aws:rds:%s:%s:db:%s' % (self.region, self.account_number, db_instance_identifier)
+        return 'arn:aws:rds:{}:{}:db:{}'.format(self.region, self.account_number, db_instance_identifier)
 
     def construct_stage_tag(self, managed_name: str):
-        return 'aurora_echo:%s:stage' % managed_name
+        return '{}:{}:stage'.format(ECHO_MANAGEMENT_TAG_INDICATOR, managed_name)
 
     def construct_managed_tag_set(self, managed_name: str, stage: str):
         tags = [

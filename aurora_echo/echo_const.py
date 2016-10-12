@@ -22,6 +22,8 @@
 # THE SOFTWARE.
 ##
 
+ECHO_MANAGEMENT_TAG_INDICATOR = 'aurora-echo'
+
 ECHO_NEW_COMMAND = 'new'
 ECHO_NEW_STAGE = 'new'
 
