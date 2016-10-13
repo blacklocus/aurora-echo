@@ -132,17 +132,17 @@ def create_cluster_and_instance(cluster_params: dict, instance_params: dict, int
 
 
 @root.command()
-@click.option('--aws_account_number', '-a', required=True)
+@click.option('--aws-account-number', '-a', required=True)
 @click.option('--region', '-r', required=True)
-@click.option('--cluster_snapshot_name', '-s', required=True)
-@click.option('--managed_name', '-n', required=True)
-@click.option('--db_subnet_group_name', '-sub', required=True)
-@click.option('--db_instance_class', '-c', required=True)
+@click.option('--cluster-snapshot-name', '-s', required=True)
+@click.option('--managed-name', '-n', required=True)
+@click.option('--db-subnet-group-name', '-sub', required=True)
+@click.option('--db-instance-class', '-c', required=True)
 @click.option('--engine', '-e', default='aurora')
-@click.option('--availability_zone', '-az')
-@click.option('--vpc_security_group_id', '-sg', multiple=True)
+@click.option('--availability-zone', '-az')
+@click.option('--vpc-security-group-id', '-sg', multiple=True)
 @click.option('--tag', '-t', multiple=True)
-@click.option('--minimum_age_hours', '-h', default=20)
+@click.option('--minimum-age-hours', '-h', default=20)
 @click.option('--interactive', '-i', default=True, type=bool)
 def new(aws_account_number: str, region: str, cluster_snapshot_name: str, managed_name: str, db_subnet_group_name: str, db_instance_class: str,
         engine: str, availability_zone: str, vpc_security_group_id: list, tag: list, minimum_age_hours: int, interactive: bool):

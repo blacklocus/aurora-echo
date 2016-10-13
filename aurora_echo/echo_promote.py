@@ -88,11 +88,11 @@ def update_dns(hosted_zone_id: str, record_set: dict, cluster_endpoint: str, ttl
 
 
 @root.command()
-@click.option('--aws_account_number', '-a', required=True)
+@click.option('--aws-account-number', '-a', required=True)
 @click.option('--region', '-r', required=True)
-@click.option('--managed_name', '-n', required=True)
-@click.option('--hosted_zone_id', '-z', required=True)
-@click.option('--record_set', '-rs', required=True)
+@click.option('--managed-name', '-n', required=True)
+@click.option('--hosted-zone-id', '-z', required=True)
+@click.option('--record-set', '-rs', required=True)
 @click.option('--ttl', default=60)
 @click.option('--interactive', '-i', default=True, type=bool)
 def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone_id: str, record_set: str, ttl: str,

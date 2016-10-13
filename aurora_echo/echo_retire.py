@@ -63,9 +63,9 @@ def delete_instance(instance: dict, interactive: bool):
 
 
 @root.command()
-@click.option('--aws_account_number', '-a', required=True)
+@click.option('--aws-account-number', '-a', required=True)
 @click.option('--region', '-r', required=True)
-@click.option('--managed_name', '-n', required=True)
+@click.option('--managed-name', '-n', required=True)
 @click.option('--interactive', '-i', default=True, type=bool)
 def retire(aws_account_number: str, region: str, managed_name: str, interactive: bool):
     click.echo('{} Starting aurora-echo for {}'.format(log_prefix(), managed_name))
