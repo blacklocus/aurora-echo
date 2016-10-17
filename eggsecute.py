@@ -45,7 +45,7 @@ def main(script_path, output_path):
 
     # tack Python header onto a file, zip file parsers ignore everything up until PK magic string
     outfile = open(output_path, 'w+b')
-    outfile.write(b"#!/usr/bin/env python\n")
+    outfile.write(b"#!/usr/bin/env python3\n")
 
     # make sure we flush, since we'll be writing zip data right after this
     outfile.flush()
@@ -59,9 +59,14 @@ def main(script_path, output_path):
     # hack to explicitly add everything
     module_files = []
     module_files.extend(collect_module_files('aurora_echo', ''))
+    module_files.extend(collect_module_files('boto3', ''))
+    module_files.extend(collect_module_files('botocore', ''))
+    module_files.extend(collect_module_files('dateutil', ''))
+    module_files.extend(collect_module_files('jmespath', ''))
+    module_files.extend(collect_module_files('click', ''))
 
     # filter out everything but .py's
-    filtered_files = [x for x in module_files if x[1].endswith(".py")]
+    filtered_files = [x for x in module_files if x[1].endswith(".py") or x[1].endswith(".json") or x[1].endswith(".pem")]
 
     for source_path, relative_destination_path in set(filtered_files):
         outzip.write(source_path, relative_destination_path)

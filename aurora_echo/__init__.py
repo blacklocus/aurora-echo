@@ -21,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 ##
-
+import aurora_echo.boto_monkey
 from aurora_echo import echo_new, echo_promote, echo_retire
 from aurora_echo.entry import root
 
