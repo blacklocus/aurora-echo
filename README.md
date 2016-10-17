@@ -14,12 +14,12 @@ Have multiple development databases? Aurora Echo allows management of unlimited 
 ## Stages
 This is our story: On a regular basis, restore the latest production snapshot to a new development instance, promote that instance to replace its former self, and then destroy the old instance.
 
-Each `aurora_echo` command progresses a managed instance through a series of stages:
+Each `aurora-echo` command progresses a managed instance through a series of stages:
 
-  - (non-existent) --`aurora_echo new`-->     **new**
-  - **new**   --`aurora_echo promote`--> **promoted**
+  - (non-existent) --`aurora-echo new`-->     **new**
+  - **new**   --`aurora-echo promote`--> **promoted**
     - This also results in any previously **promoted** instance advancing to **retired**
-  - **retired**  --`aurora_echo retire`-->  (non-existent)
+  - **retired**  --`aurora-echo retire`-->  (non-existent)
 
 So in the straightforward case, each command is run in succession after the previous commands stabilize and leave the DB instance in the "available" state.
 
@@ -45,30 +45,30 @@ sudo chmod +x /usr/local/bin/aurora-echo
 - **When**: You may want to run this periodically on a cron job. It includes a safety check to make sure it hasn't restored a cluster in the last (configurable) n hours and aborts if a managed cluster is too new.
 
 #### Configuration
-- `-a, --aws_account_number [required]`
+- `-a, --aws-account-number [required]`
   - Your AWS account number
 - `-r, --region [required]`
   - e.g. `us-east-1`
-- `-n, --managed_name [required]`
+- `-n, --managed-name [required]`
   - The name of the cluster and instance you want to create/restore to. This will also go into the tag to track managed instances. e.g. `development`
-- `-s, --cluster_snapshot_name [required]`
+- `-s, --cluster-snapshot-name [required]`
   - The cluster name of the snapshot you want to restore from, e.g. `production`
-- `-sub, --db_subnet_group_name [required]`
+- `-sub, --db-subnet-group-name [required]`
   - VPC subnet group to restore into
-- `-c, --db_instance_class [required]`
+- `-c, --db-instance-class [required]`
   - Size of the database instance to create, e.g. `db.r3.2xlarge`
 - `-e, --engine`
   - Defaults to `aurora`
-- `-az, --availability_zone`
+- `-az, --availability-zone`
   - e.g. `us-east-1c`. If not set, AWS defaults this to the region the parent snapshot is in.
-- `-sg, --vpc_security_group_id`
+- `-sg, --vpc-security-group-id`
   - The ID of any security groups to assign to the created instance/cluster
   - Allows multiple inputs (use one option flag per input).
 - `-t, --tag`
   - Any custom tags to assign to the cluster and instance, e.g. `purple=true`
   - Custom tags will not interfere with, nor should include the Aurora Echo management tags
   - Allows multiple inputs (use one option flag per input).
-- `-h, --minimum_age_hours`
+- `-h, --minimum-age-hours`
   - If an existing managed instance has been created within the last `-h` hours, abort creation of a new instance. Defaults to 20.
 - `--help`
   - Show options and exit.
@@ -79,15 +79,15 @@ sudo chmod +x /usr/local/bin/aurora-echo
 - **When**: You may want to run this periodically on a cron job. It will only operate when an instance is in the `new` stage and has status `available`.
 
 #### Configuration
-- `-a, --aws_account_number [required]`
+- `-a, --aws-account-number [required]`
   - Your AWS account number
 - `-r, --region [required]`
   - e.g. `us-east-1`
-- `-n, --managed_name [required]`
-  - The managed name tracking the instance you want to promote. This is the same a the `--managed_name` parameter used in the `new` step.
-- `-z, --hosted_zone_id [required]`
+- `-n, --managed-name [required]`
+  - The managed name tracking the instance you want to promote. This is the same a the `--managed-name` parameter used in the `new` step.
+- `-z, --hosted-zone-id [required]`
   - The ID of the hosted zone containing the DNS record set to be updated
-- `-rs, --record_set [required]`
+- `-rs, --record-set [required]`
   - Name of the record set to update, e.g. `dev-db.mycompany.com`. Aurora Echo only supports CNAME updates.
 - `--ttl`
   - TTL in seconds. Defaults to 60.
@@ -101,12 +101,12 @@ sudo chmod +x /usr/local/bin/aurora-echo
 - **When**: You may want to run this periodically on a cron job. It will only operate when a managed instance is in the `retired` stage.
 
 #### Configuration
-- `-a, --aws_account_number [required]`
+- `-a, --aws-account-number [required]`
   - Your AWS account number
 - `-r, --region [required]`
   - e.g. `us-east-1`
-- `-n, --managed_name [required]`
-  - The managed name tracking the instance you want to retire. This is the same as the `-managed_name` parameter used in previous steps.
+- `-n, --managed-name [required]`
+  - The managed name tracking the instance you want to retire. This is the same as the `-managed-name` parameter used in previous steps.
 - `--help`
   - Show options and exit.
 
