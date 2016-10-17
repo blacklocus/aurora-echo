@@ -28,7 +28,7 @@ import boto3
 import click
 
 from aurora_echo.echo_const import ECHO_RETIRE_COMMAND, ECHO_RETIRE_STAGE
-from aurora_echo.echo_util import EchoUtil, log_prefix_factory
+from aurora_echo.echo_util import EchoUtil, log_prefix_factory, validate_input_param
 from aurora_echo.entry import root
 
 rds = boto3.client('rds')
@@ -63,9 +63,9 @@ def delete_instance(instance: dict, interactive: bool):
 
 
 @root.command()
-@click.option('--aws-account-number', '-a', required=True)
-@click.option('--region', '-r', required=True)
-@click.option('--managed-name', '-n', required=True)
+@click.option('--aws-account-number', '-a', callback=validate_input_param, required=True)
+@click.option('--region', '-r', callback=validate_input_param, required=True)
+@click.option('--managed-name', '-n', callback=validate_input_param, required=True)
 @click.option('--interactive', '-i', default=True, type=bool)
 def retire(aws_account_number: str, region: str, managed_name: str, interactive: bool):
     click.echo('{} Starting aurora-echo for {}'.format(log_prefix(), managed_name))
