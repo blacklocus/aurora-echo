@@ -113,7 +113,7 @@ sudo chmod +x /usr/local/bin/aurora-echo
 
 ## Notes!
 - This tool creates instances and clusters with today's date attached, such as `development-2016-10-05`. This combined with the previous-instance freshness check will prevent multiple instances from being created in a cluster.
-- The boto_monkey packaging helper came from [this project](https://github.com/rholder/dynq/blob/master/dynq/boto_monkey.py)
+- The boto_monkey and eggsecute packaging helpers came from [this project](https://github.com/rholder/dynq)
 
 ## Development
 A binary is provided (see Installation); however, to build your own from source, run `make all`. You will need to have [virtualenv](https://virtualenv.pypa.io/en/stable/) installed.
