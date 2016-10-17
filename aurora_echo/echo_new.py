@@ -1,3 +1,27 @@
+##
+# The MIT License (MIT)
+#
+# Copyright (c) 2016 BlackLocus
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+##
+
 import json
 from datetime import datetime, timezone
 
@@ -95,6 +119,7 @@ def create_cluster_and_instance(cluster_params: dict, instance_params: dict, int
     if interactive:
         click.confirm('{} Ready to create cluster and instance with these settings?'.format(log_prefix()), abort=True)  # exits entirely if no
 
+    click.echo('{} Creating cluster and instance...'.format(log_prefix()))
     response = rds.restore_db_cluster_from_snapshot(**cluster_params)
 
     # don't assume the cluster name came back exactly the same; use the one we received from aws
@@ -107,21 +132,21 @@ def create_cluster_and_instance(cluster_params: dict, instance_params: dict, int
 
 
 @root.command()
-@click.option('--aws_account_number', '-a', required=True)
+@click.option('--aws-account-number', '-a', required=True)
 @click.option('--region', '-r', required=True)
-@click.option('--cluster_snapshot_name', '-s', required=True)
-@click.option('--managed_name', '-n', required=True)
-@click.option('--db_subnet_group_name', '-sub', required=True)
-@click.option('--db_instance_class', '-c', required=True)
+@click.option('--cluster-snapshot-name', '-s', required=True)
+@click.option('--managed-name', '-n', required=True)
+@click.option('--db-subnet-group-name', '-sub', required=True)
+@click.option('--db-instance-class', '-c', required=True)
 @click.option('--engine', '-e', default='aurora')
-@click.option('--availability_zone', '-az')
-@click.option('--vpc_security_group_id', '-sg', multiple=True)
+@click.option('--availability-zone', '-az')
+@click.option('--vpc-security-group-id', '-sg', multiple=True)
 @click.option('--tag', '-t', multiple=True)
-@click.option('--minimum_age_hours', '-h', default=20)
+@click.option('--minimum-age-hours', '-h', default=20)
 @click.option('--interactive', '-i', default=True, type=bool)
 def new(aws_account_number: str, region: str, cluster_snapshot_name: str, managed_name: str, db_subnet_group_name: str, db_instance_class: str,
         engine: str, availability_zone: str, vpc_security_group_id: list, tag: list, minimum_age_hours: int, interactive: bool):
-
+    click.echo('{} Starting aurora-echo for {}'.format(log_prefix(), managed_name))
     util = EchoUtil(region, aws_account_number)
     if not util.instance_too_new(managed_name, minimum_age_hours):
 
