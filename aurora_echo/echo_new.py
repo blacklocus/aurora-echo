@@ -29,7 +29,7 @@ import boto3
 import click
 
 from aurora_echo.echo_const import ECHO_NEW_STAGE, ECHO_NEW_COMMAND
-from aurora_echo.echo_util import EchoUtil, log_prefix_factory
+from aurora_echo.echo_util import EchoUtil, log_prefix_factory, validate_input_param
 from aurora_echo.entry import root
 
 rds = boto3.client('rds')
@@ -132,12 +132,12 @@ def create_cluster_and_instance(cluster_params: dict, instance_params: dict, int
 
 
 @root.command()
-@click.option('--aws-account-number', '-a', required=True)
-@click.option('--region', '-r', required=True)
-@click.option('--cluster-snapshot-name', '-s', required=True)
-@click.option('--managed-name', '-n', required=True)
-@click.option('--db-subnet-group-name', '-sub', required=True)
-@click.option('--db-instance-class', '-c', required=True)
+@click.option('--aws-account-number', '-a', callback=validate_input_param, required=True)
+@click.option('--region', '-r', callback=validate_input_param, required=True)
+@click.option('--cluster-snapshot-name', '-s', callback=validate_input_param, required=True)
+@click.option('--managed-name', '-n', callback=validate_input_param, required=True)
+@click.option('--db-subnet-group-name', '-sub', callback=validate_input_param, required=True)
+@click.option('--db-instance-class', '-c', callback=validate_input_param, required=True)
 @click.option('--engine', '-e', default='aurora')
 @click.option('--availability-zone', '-az')
 @click.option('--vpc-security-group-id', '-sg', multiple=True)

@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 
 import boto3
 import click
+from botocore.exceptions import ClientError
 from dateutil.relativedelta import relativedelta
 
 from aurora_echo.echo_const import ECHO_MANAGEMENT_TAG_INDICATOR
@@ -37,6 +38,12 @@ def log_prefix_factory(command_name: str):
     def log_prefix():
         return '{0:%Y-%m-%d %H:%M:%S %Z} [{1}]'.format(datetime.now(timezone.utc), command_name)
     return log_prefix
+
+
+def validate_input_param(ctx, param, value):
+    if not value:
+        raise click.BadParameter('parameter must not be empty')
+    return value
 
 
 class EchoUtil(object):
@@ -91,7 +98,11 @@ class EchoUtil(object):
 
         # get all their tags
         for instance in response['DBInstances']:
-            tags = rds.list_tags_for_resource(ResourceName=self.construct_arn(instance['DBInstanceIdentifier']))
+            try:
+                arn = self.construct_arn(instance['DBInstanceIdentifier'])
+                tags = rds.list_tags_for_resource(ResourceName=arn)
+            except ClientError:
+                raise click.UsageError('Unable to list tags for resource at {!r}. Check your account number and region and try again.'.format(arn))
             tag_list = tags['TagList']
             for tag in tag_list:
                 # does it have our managed tag?
