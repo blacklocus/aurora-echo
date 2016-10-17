@@ -84,7 +84,7 @@ sudo chmod +x /usr/local/bin/aurora-echo
 - `-r, --region [required]`
   - e.g. `us-east-1`
 - `-n, --managed-name [required]`
-  - The managed name tracking the instance you want to promote. This is the same a the `--managed-name` parameter used in the `new` step.
+  - The managed name tracking the instance you want to promote. This is the same as the `--managed-name` parameter used in the `new` step.
 - `-z, --hosted-zone-id [required]`
   - The ID of the hosted zone containing the DNS record set to be updated
 - `-rs, --record-set [required]`
@@ -106,7 +106,7 @@ sudo chmod +x /usr/local/bin/aurora-echo
 - `-r, --region [required]`
   - e.g. `us-east-1`
 - `-n, --managed-name [required]`
-  - The managed name tracking the instance you want to retire. This is the same as the `-managed-name` parameter used in previous steps.
+  - The managed name tracking the instance you want to retire. This is the same as the `--managed-name` parameter used in previous steps.
 - `--help`
   - Show options and exit.
 
@@ -114,3 +114,6 @@ sudo chmod +x /usr/local/bin/aurora-echo
 ## Notes!
 - This tool creates instances and clusters with today's date attached, such as `development-2016-10-05`. This combined with the previous-instance freshness check will prevent multiple instances from being created in a cluster.
 - The boto_monkey packaging helper came from [this project](https://github.com/rholder/dynq/blob/master/dynq/boto_monkey.py)
+
+## Development
+A binary is provided (see Installation); however, to build your own from source, run `make all`. You will need to have [virtualenv](https://virtualenv.pypa.io/en/stable/) installed.
