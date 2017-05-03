@@ -47,12 +47,14 @@ def find_record_set(hosted_zone_id: str, record_set_name: str):
             return record_set
 
 
-def update_dns(hosted_zone_id: str, record_set: dict, cluster_endpoint: str, ttl: str, interactive: bool):
-    # print out the record we're replacing
-    currently_set_endpoint = 'nothing'
-    if record_set.get('ResourceRecords'):
-        currently_set_endpoint = record_set['ResourceRecords'][0]['Value']
-    click.echo('{} Found record set {} currently pointed at {}'.format(log_prefix(), record_set['Name'], currently_set_endpoint))
+def update_dns(hosted_zone_id: str, record_set_name: str, cluster_endpoint: str, ttl: str, interactive: bool):
+    record_set = find_record_set(hosted_zone_id, record_set_name)
+
+    if record_set and record_set.get('ResourceRecords'):
+        click.echo('{} Found record set {} currently pointed at {}'
+                   .format(log_prefix(), record_set['Name'], record_set['ResourceRecords'][0]['Value']))
+    else:
+        click.echo('{} Inserting new record set {}'.format(log_prefix(), record_set_name))
 
     params = {
         'HostedZoneId': hosted_zone_id,
@@ -62,8 +64,8 @@ def update_dns(hosted_zone_id: str, record_set: dict, cluster_endpoint: str, ttl
                 {
                     'Action': 'UPSERT',
                     'ResourceRecordSet': {
-                        'Name': record_set['Name'],
-                        'Type': record_set['Type'],
+                        'Name': record_set_name,
+                        'Type': 'CNAME',
                         'TTL': ttl,
                         'ResourceRecords': [
                             {
@@ -105,20 +107,16 @@ def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone
         click.echo('{} Found promotable instance: {}'.format(log_prefix(), found_instance['DBInstanceIdentifier']))
         cluster_endpoint = found_instance['Endpoint']['Address']
 
-        record_set_dict = find_record_set(hosted_zone_id, record_set)
-        if record_set_dict:
-            update_dns(hosted_zone_id, record_set_dict, cluster_endpoint, ttl, interactive)
+        update_dns(hosted_zone_id, record_set, cluster_endpoint, ttl, interactive)
 
-            old_promoted_instance = util.find_instance_in_stage(managed_name, ECHO_PROMOTE_STAGE)
-            if old_promoted_instance:
-                click.echo('{} Retiring old instance: {}'.format(log_prefix(), old_promoted_instance['DBInstanceIdentifier']))
-                util.add_stage_tag(managed_name, old_promoted_instance, ECHO_RETIRE_STAGE)
+        old_promoted_instance = util.find_instance_in_stage(managed_name, ECHO_PROMOTE_STAGE)
+        if old_promoted_instance:
+            click.echo('{} Retiring old instance: {}'.format(log_prefix(), old_promoted_instance['DBInstanceIdentifier']))
+            util.add_stage_tag(managed_name, old_promoted_instance, ECHO_RETIRE_STAGE)
 
-            click.echo('{} Updating tag for promoted instance: {}'.format(log_prefix(), found_instance['DBInstanceIdentifier']))
-            util.add_stage_tag(managed_name, found_instance, ECHO_PROMOTE_STAGE)
+        click.echo('{} Updating tag for promoted instance: {}'.format(log_prefix(), found_instance['DBInstanceIdentifier']))
+        util.add_stage_tag(managed_name, found_instance, ECHO_PROMOTE_STAGE)
 
-            click.echo('{} Done!'.format(log_prefix()))
-        else:
-            click.echo('{} No record set found at hosted zone {} with name {}. Unable to promote instance.'.format(log_prefix(), hosted_zone_id, record_set))
+        click.echo('{} Done!'.format(log_prefix()))
     else:
         click.echo('{} No instance found in stage {} with status \'available\'. Not proceeding.'.format(log_prefix(), ECHO_NEW_STAGE))
