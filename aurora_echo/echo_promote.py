@@ -48,57 +48,58 @@ def find_record_set(hosted_zone_id: str, record_set_name: str):
                 return record_set
 
 
-def update_dns(hosted_zone_id: str, record_set_name: str, cluster_endpoint: str, ttl: str, interactive: bool):
-    record_set = find_record_set(hosted_zone_id, record_set_name)
+def update_dns(hosted_zone_ids: tuple, record_set_name: str, cluster_endpoint: str, ttl: str, interactive: bool):
+    for hosted_zone in hosted_zone_ids:
+        record_set = find_record_set(hosted_zone, record_set_name)
 
-    if record_set and record_set.get('ResourceRecords'):
-        click.echo('{} Found record set {} currently pointed at {}'
-                   .format(log_prefix(), record_set['Name'], record_set['ResourceRecords'][0]['Value']))
-    else:
-        click.echo('{} Inserting new record set {}'.format(log_prefix(), record_set_name))
+        if record_set and record_set.get('ResourceRecords'):
+            click.echo('{} Found record set {} currently pointed at {}'
+                       .format(log_prefix(), record_set['Name'], record_set['ResourceRecords'][0]['Value']))
+        else:
+            click.echo('{} Inserting new record set {} in hosted zone {}'.format(log_prefix(), record_set_name, hosted_zone))
 
-    params = {
-        'HostedZoneId': hosted_zone_id,
-        'ChangeBatch': {
-            'Comment': 'Modified by Aurora Echo',
-            'Changes': [
-                {
-                    'Action': 'UPSERT',
-                    'ResourceRecordSet': {
-                        'Name': record_set_name,
-                        'Type': 'CNAME',
-                        'TTL': ttl,
-                        'ResourceRecords': [
-                            {
-                                'Value': cluster_endpoint
-                            },
-                        ],
-                    }
-                },
-            ]
+        params = {
+            'HostedZoneId': hosted_zone,
+            'ChangeBatch': {
+                'Comment': 'Modified by Aurora Echo',
+                'Changes': [
+                    {
+                        'Action': 'UPSERT',
+                        'ResourceRecordSet': {
+                            'Name': record_set_name,
+                            'Type': 'CNAME',
+                            'TTL': ttl,
+                            'ResourceRecords': [
+                                {
+                                    'Value': cluster_endpoint
+                                },
+                            ],
+                        }
+                    },
+                ]
+            }
         }
-    }
 
-    click.echo('{} Parameters:'.format(log_prefix()))
-    click.echo(json.dumps(params, indent=4, sort_keys=True))
+        click.echo('{} Parameters:'.format(log_prefix()))
+        click.echo(json.dumps(params, indent=4, sort_keys=True))
 
-    if interactive:
-        click.confirm('{} Ready to update DNS record with these settings?'.format(log_prefix()), abort=True)  # exits entirely if no
+        if interactive:
+            click.confirm('{} Ready to update DNS record with these settings?'.format(log_prefix()), abort=True)  # exits entirely if no
 
-    # update to the found instance endpoint
-    response = route53.change_resource_record_sets(**params)
-    click.echo('{} Success! DNS updated.'.format(log_prefix()))
+        # update to the found instance endpoint
+        response = route53.change_resource_record_sets(**params)
+        click.echo('{} Success! DNS updated in hosted zone {}'.format(log_prefix(), hosted_zone))
 
 
 @root.command()
 @click.option('--aws-account-number', '-a', callback=validate_input_param, required=True)
 @click.option('--region', '-r', callback=validate_input_param, required=True)
 @click.option('--managed-name', '-n', callback=validate_input_param, required=True)
-@click.option('--hosted-zone-id', '-z', callback=validate_input_param, required=True)
+@click.option('--hosted-zone-id', '-z', callback=validate_input_param, multiple=True, required=True)
 @click.option('--record-set', '-rs', callback=validate_input_param, required=True)
 @click.option('--ttl', default=60)
 @click.option('--interactive', '-i', default=True, type=bool)
-def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone_id: str, record_set: str, ttl: str,
+def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone_id: tuple, record_set: str, ttl: str,
             interactive: bool):
     click.echo('{} Starting aurora-echo for {}'.format(log_prefix(), managed_name))
     util = EchoUtil(region, aws_account_number)
