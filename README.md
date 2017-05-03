@@ -33,7 +33,7 @@ You will need to set up AWS auth as per the [boto documentation](https://boto3.r
 
 Grab the latest version and set it to executable like so:
 ```sh
-sudo curl -o /usr/local/bin/aurora-echo -L "https://github.com/blacklocus/aurora-echo/releases/download/v1.0.0/aurora-echo" && \
+sudo curl -o /usr/local/bin/aurora-echo -L "https://github.com/blacklocus/aurora-echo/releases/download/v1.1.0/aurora-echo" && \
 sudo chmod +x /usr/local/bin/aurora-echo
 ```
 
