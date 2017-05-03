@@ -104,12 +104,15 @@ def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone
     click.echo('{} Starting aurora-echo for {}'.format(log_prefix(), managed_name))
     util = EchoUtil(region, aws_account_number)
 
+    # click doesn't allow mismatches between option and parameter names, so just for clarity, this is a tuple
+    hosted_zone_ids = hosted_zone_id
+
     found_instance = util.find_instance_in_stage(managed_name, ECHO_NEW_STAGE)
     if found_instance and found_instance['DBInstanceStatus'] == 'available':
         click.echo('{} Found promotable instance: {}'.format(log_prefix(), found_instance['DBInstanceIdentifier']))
         cluster_endpoint = found_instance['Endpoint']['Address']
 
-        update_dns(hosted_zone_id, record_set, cluster_endpoint, ttl, interactive)
+        update_dns(hosted_zone_ids, record_set, cluster_endpoint, ttl, interactive)
 
         old_promoted_instance = util.find_instance_in_stage(managed_name, ECHO_PROMOTE_STAGE)
         if old_promoted_instance:
