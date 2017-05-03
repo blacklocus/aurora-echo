@@ -39,12 +39,13 @@ log_prefix = log_prefix_factory(ECHO_PROMOTE_COMMAND)
 
 def find_record_set(hosted_zone_id: str, record_set_name: str):
 
-    response = route53.list_resource_record_sets(HostedZoneId=hosted_zone_id)
-    record_sets_list = response['ResourceRecordSets']
+    paginator = route53.get_paginator('list_resource_record_sets')
+    response_iterator = paginator.paginate(HostedZoneId=hosted_zone_id)
 
-    for record_set in record_sets_list:
-        if record_set['Name'] == record_set_name:
-            return record_set
+    for response in response_iterator:
+        for record_set in response['ResourceRecordSets']:
+            if record_set['Name'] == record_set_name:
+                return record_set
 
 
 def update_dns(hosted_zone_id: str, record_set_name: str, cluster_endpoint: str, ttl: str, interactive: bool):
