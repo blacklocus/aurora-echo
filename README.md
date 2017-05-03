@@ -86,7 +86,7 @@ sudo chmod +x /usr/local/bin/aurora-echo
 - `-n, --managed-name [required]`
   - The managed name tracking the instance you want to promote. This is the same as the `--managed-name` parameter used in the `new` step.
 - `-z, --hosted-zone-id [required]`
-  - The ID of the hosted zone containing the DNS record set to be updated
+  - The ID of the hosted zone containing the DNS record set to be updated. You can give this option multiple times to add the same record set in multiple hosted zones.
 - `-rs, --record-set [required]`
   - Name of the record set to update, e.g. `dev-db.mycompany.com`. Aurora Echo only supports CNAME updates.
 - `--ttl`
