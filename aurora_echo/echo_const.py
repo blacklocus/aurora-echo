@@ -27,6 +27,9 @@ ECHO_MANAGEMENT_TAG_INDICATOR = 'aurora-echo'
 ECHO_NEW_COMMAND = 'new'
 ECHO_NEW_STAGE = 'new'
 
+ECHO_CLONE_COMMAND = 'clone'
+ECHO_CLONE_STAGE = 'new'  # all roads lead to new
+
 ECHO_PROMOTE_COMMAND = 'promote'
 ECHO_PROMOTE_STAGE = 'promoted'
 
