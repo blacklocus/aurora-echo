@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 ##
 import aurora_echo.boto_monkey
-from aurora_echo import echo_clone, echo_new, echo_promote, echo_retire
+from aurora_echo import echo_clone, echo_new, echo_modify, echo_promote, echo_retire
 from aurora_echo.entry import root
 
 
