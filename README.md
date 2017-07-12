@@ -7,7 +7,7 @@ This tool assists in AWS RDS Aurora database lifecycle management. It is a compa
 ### What do?
 Use this tool to automatically restore an Aurora database cluster from a snapshot, promote it to live via DNS updates in Route53, and at EOL destroy the managed cluster.
 
-The three different stages here -- new, promote, retire -- can all be run periodically without regard for timing of the other stages. This is because the commands are idempotent and the lifecycle stages are tracked on the database instances themselves via tags. Thus each command will only operate on a database that is tagged appropriately, and will exit cleanly if there is no database in the appropriate stage.
+The five different stages here -- new, clone, modify, promote, retire -- can all be run periodically without regard for timing of the other stages. This is because the commands are idempotent and the lifecycle stages are tracked on the database instances themselves via tags. Thus each command will only operate on a database that is tagged appropriately, and will exit cleanly if there is no database in the appropriate stage.
 
 Have multiple development databases? Aurora Echo allows management of unlimited independent lifecycles; just name them differently in configuration and don't worry about them interfering with each other.
 
@@ -17,7 +17,8 @@ This is our story: On a regular basis, restore the latest production snapshot to
 Each `aurora-echo` command progresses a managed instance through a series of stages:
 
   - (non-existent) --`aurora-echo new` | `aurora-echo clone`-->     **new**
-  - **new**   --`aurora-echo promote`--> **promoted**
+  - **new**   --`aurora-echo modify`--> **modified**
+  - **modified**   --`aurora-echo promote`--> **promoted**
     - This also results in any previously **promoted** instance advancing to **retired**
   - **retired**  --`aurora-echo retire`-->  (non-existent)
 
@@ -33,7 +34,7 @@ You will need to set up AWS auth as per the [boto documentation](https://boto3.r
 
 Grab the latest version and set it to executable like so:
 ```sh
-sudo curl -o /usr/local/bin/aurora-echo -L "https://github.com/blacklocus/aurora-echo/releases/download/v1.2.0/aurora-echo" && \
+sudo curl -o /usr/local/bin/aurora-echo -L "https://github.com/blacklocus/aurora-echo/releases/download/v2.0.0/aurora-echo" && \
 sudo chmod +x /usr/local/bin/aurora-echo
 ```
 
@@ -71,8 +72,11 @@ sudo chmod +x /usr/local/bin/aurora-echo
   - Allows multiple inputs (use one option flag per input).
 - `-h, --minimum-age-hours`
   - If an existing managed instance has been created within the last `-h` hours, abort creation of a new instance. Defaults to 20.
+- `-i, --interactive`
+  - Prompt the user for confirmation before making changes. Defaults to true.
 - `--help`
   - Show options and exit.
+
 
 ### `clone`
 - **What**: Create a new cluster and instance that is a clone of an existing database. See [AWS docs on cloning](http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Aurora.Managing.Clone.html) for more information.
@@ -106,13 +110,37 @@ sudo chmod +x /usr/local/bin/aurora-echo
   - Allows multiple inputs (use one option flag per input).
 - `-h, --minimum-age-hours`
   - If an existing managed instance has been created within the last `-h` hours, abort creation of a new instance. Defaults to 20.
+- `-i, --interactive`
+  - Prompt the user for confirmation before making changes. Defaults to true.
 - `--help`
   - Show options and exit.
 
+
+### `modify`
+- **What**: Progress a database instance from `new` to `modified` by optionally adding an IAM role. In order to prevent a branching state diagram, all lifecycles must pass through this stage. If no IAM role need be applied, simply leave off the optional parameter and the state will be progressed without actually changing the cluster or instance.
+- **How**: Look for a managed instance in RDS that is in the stage `new`. Apply the provided IAM role to it, if any. This stage could be expanded in order to modify other attributes not available via API on creation.
+- **When**: You may want to run this periodically on a cron job. It will only operate when an instance is in the `new` stage and its cluster has status `available`.
+- **State**: Leaves the new db in the `modified` state
+
+#### Configuration
+- `-a, --aws-account-number [required]`
+  - Your AWS account number
+- `-r, --region [required]`
+  - e.g. `us-east-1`
+- `-n, --managed-name [required]`
+  - The managed name tracking the instance you want to promote. This is the same as the `--managed-name` parameter used in the `new` step.
+- ` -iam, --iam-role-name`
+  - The name of the IAM role. This will be converted to an ARN in order to apply it to the cluster.
+- `-i, --interactive`
+  - Prompt the user for confirmation before making changes. Defaults to true.
+- `--help`
+  - Show options and exit.
+
+
 ### `promote`
-- **What**: Progress a database instance from `new` to `promoted` by updating a record set's DNS entry in Route53 to point to the newly promoted database's endpoint.
-- **How**: Look for a managed instance in RDS that is in the stage `new`, and update the supplied record set's DNS entry to its endpoint. Move any appropriate existing instance's stage from `promoted` to `retired`, and update this instance's stage from `new` to `promoted`.
-- **When**: You may want to run this periodically on a cron job. It will only operate when an instance is in the `new` stage and has status `available`.
+- **What**: Progress a database instance from `modified` to `promoted` by updating a record set's DNS entry in Route53 to point to the newly promoted database's endpoint.
+- **How**: Look for a managed instance in RDS that is in the stage `modified`, and update the supplied record set's DNS entry to its endpoint. Move any appropriate existing instance's stage from `promoted` to `retired`, and update this instance's stage from `modified` to `promoted`.
+- **When**: You may want to run this periodically on a cron job. It will only operate when an instance is in the `modified` stage and has status `available`.
 - **State**: Leaves the new db in the `promoted` state
 - **State**: Leaves the previously promoted db in the `retired` state
 
@@ -129,6 +157,8 @@ sudo chmod +x /usr/local/bin/aurora-echo
   - Name of the record set to update, e.g. `dev-db.mycompany.com`. Aurora Echo only supports CNAME updates.
 - `--ttl`
   - TTL in seconds. Defaults to 60.
+- `-i, --interactive`
+  - Prompt the user for confirmation before making changes. Defaults to true.
 - `--help`
   - Show options and exit.
 
@@ -146,6 +176,8 @@ sudo chmod +x /usr/local/bin/aurora-echo
   - e.g. `us-east-1`
 - `-n, --managed-name [required]`
   - The managed name tracking the instance you want to retire. This is the same as the `--managed-name` parameter used in previous steps.
+- `-i, --interactive`
+  - Prompt the user for confirmation before making changes. Defaults to true.
 - `--help`
   - Show options and exit.
 
