@@ -30,6 +30,9 @@ ECHO_NEW_STAGE = 'new'
 ECHO_CLONE_COMMAND = 'clone'
 ECHO_CLONE_STAGE = 'new'  # all roads lead to new
 
+ECHO_MODIFY_COMMAND = 'modify'
+ECHO_MODIFY_STAGE = 'modified'
+
 ECHO_PROMOTE_COMMAND = 'promote'
 ECHO_PROMOTE_STAGE = 'promoted'
 

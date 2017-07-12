@@ -56,8 +56,11 @@ class EchoUtil(object):
         self.region = region
         self.account_number = account_number
 
-    def construct_arn(self, db_instance_identifier: str):
+    def construct_rds_arn(self, db_instance_identifier: str):
         return 'arn:aws:rds:{}:{}:db:{}'.format(self.region, self.account_number, db_instance_identifier)
+
+    def construct_iam_arn(self, iam_role_name: str):
+        return 'arn:aws:iam::{}:role/{}'.format(self.account_number, iam_role_name)
 
     def construct_stage_tag(self, managed_name: str):
         return '{}:{}:stage'.format(ECHO_MANAGEMENT_TAG_INDICATOR, managed_name)
@@ -82,7 +85,7 @@ class EchoUtil(object):
         return tag_list
 
     def add_stage_tag(self, managed_name: str, instance: dict, next_stage: str):
-        resource_arn = self.construct_arn(instance['DBInstanceIdentifier'])
+        resource_arn = self.construct_rds_arn(instance['DBInstanceIdentifier'])
         tags = [
             {'Key': self.construct_stage_tag(managed_name), 'Value': next_stage},
         ]
@@ -99,7 +102,7 @@ class EchoUtil(object):
         # get all their tags
         for instance in response['DBInstances']:
             try:
-                arn = self.construct_arn(instance['DBInstanceIdentifier'])
+                arn = self.construct_rds_arn(instance['DBInstanceIdentifier'])
                 tags = rds.list_tags_for_resource(ResourceName=arn)
             except ClientError:
                 raise click.UsageError('Unable to list tags for resource at {!r}. Check your account number and region and try again.'.format(arn))

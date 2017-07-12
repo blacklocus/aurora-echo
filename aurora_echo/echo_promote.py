@@ -27,7 +27,7 @@ import json
 import boto3
 import click
 
-from aurora_echo.echo_const import ECHO_NEW_STAGE, ECHO_PROMOTE_COMMAND, ECHO_PROMOTE_STAGE, ECHO_RETIRE_STAGE
+from aurora_echo.echo_const import ECHO_MODIFY_STAGE, ECHO_PROMOTE_COMMAND, ECHO_PROMOTE_STAGE, ECHO_RETIRE_STAGE
 from aurora_echo.echo_util import EchoUtil, log_prefix_factory, validate_input_param
 from aurora_echo.entry import root
 
@@ -107,7 +107,7 @@ def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone
     # click doesn't allow mismatches between option and parameter names, so just for clarity, this is a tuple
     hosted_zone_ids = hosted_zone_id
 
-    found_instance = util.find_instance_in_stage(managed_name, ECHO_NEW_STAGE)
+    found_instance = util.find_instance_in_stage(managed_name, ECHO_MODIFY_STAGE)
     if found_instance and found_instance['DBInstanceStatus'] == 'available':
         click.echo('{} Found promotable instance: {}'.format(log_prefix(), found_instance['DBInstanceIdentifier']))
         cluster_endpoint = found_instance['Endpoint']['Address']
@@ -124,4 +124,4 @@ def promote(aws_account_number: str, region: str, managed_name: str, hosted_zone
 
         click.echo('{} Done!'.format(log_prefix()))
     else:
-        click.echo('{} No instance found in stage {} with status \'available\'. Not proceeding.'.format(log_prefix(), ECHO_NEW_STAGE))
+        click.echo('{} No instance found in stage {} with status \'available\'. Not proceeding.'.format(log_prefix(), ECHO_MODIFY_STAGE))
