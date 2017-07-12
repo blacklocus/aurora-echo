@@ -16,7 +16,7 @@ This is our story: On a regular basis, restore the latest production snapshot to
 
 Each `aurora-echo` command progresses a managed instance through a series of stages:
 
-  - (non-existent) --`aurora-echo new`-->     **new**
+  - (non-existent) --`aurora-echo new` | `aurora-echo clone`-->     **new**
   - **new**   --`aurora-echo promote`--> **promoted**
     - This also results in any previously **promoted** instance advancing to **retired**
   - **retired**  --`aurora-echo retire`-->  (non-existent)
@@ -33,7 +33,7 @@ You will need to set up AWS auth as per the [boto documentation](https://boto3.r
 
 Grab the latest version and set it to executable like so:
 ```sh
-sudo curl -o /usr/local/bin/aurora-echo -L "https://github.com/blacklocus/aurora-echo/releases/download/v1.1.0/aurora-echo" && \
+sudo curl -o /usr/local/bin/aurora-echo -L "https://github.com/blacklocus/aurora-echo/releases/download/v1.2.0/aurora-echo" && \
 sudo chmod +x /usr/local/bin/aurora-echo
 ```
 
@@ -43,6 +43,7 @@ sudo chmod +x /usr/local/bin/aurora-echo
 - **What**: Create a new cluster and instance restored from a snapshot.
 - **How**: Given a cluster name as input, find the latest snapshot of said cluster and use it as a basis for restoring a new cluster.
 - **When**: You may want to run this periodically on a cron job. It includes a safety check to make sure it hasn't restored a cluster in the last (configurable) n hours and aborts if a managed cluster is too new.
+- **State**: Leaves the db in the `new` state
 
 #### Configuration
 - `-a, --aws-account-number [required]`
@@ -73,10 +74,47 @@ sudo chmod +x /usr/local/bin/aurora-echo
 - `--help`
   - Show options and exit.
 
+### `clone`
+- **What**: Create a new cluster and instance that is a clone of an existing database. See [AWS docs on cloning](http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Aurora.Managing.Clone.html) for more information.
+- **How**: Given a cluster name as input, use the [restore_db_cluster_to_point_in_time](http://boto3.readthedocs.io/en/latest/reference/services/rds.html#RDS.Client.restore_db_cluster_to_point_in_time) method with `RestoreType=copy-on-write` to create it as a clone. The `RestoreType=full-copy` is not supported by aurora-echo right now. Use `new` to simulate that.
+- **When**: You may want to run this periodically on a cron job. It includes a safety check to make sure it hasn't restored a cluster in the last (configurable) n hours and aborts if a managed cluster is too new.
+- **State**: Leaves the db in the `new` state
+
+#### Configuration
+- `-a, --aws-account-number [required]`
+  - Your AWS account number
+- `-r, --region [required]`
+  - e.g. `us-east-1`
+- `-n, --managed-name [required]`
+  - The name of the cluster and instance you want to create/restore to. This will also go into the tag to track managed instances. e.g. `development`
+- `-s, --source-cluster-name [required]`
+  - The cluster name to clone, e.g. `production`
+- `-sub, --db-subnet-group-name [required]`
+  - VPC subnet group to restore into
+- `-c, --db-instance-class [required]`
+  - Size of the database instance to create, e.g. `db.r3.2xlarge`
+- `-e, --engine`
+  - Defaults to `aurora`
+- `-az, --availability-zone`
+  - e.g. `us-east-1c`. If not set, AWS defaults this to the region the parent snapshot is in.
+- `-sg, --vpc-security-group-id`
+  - The ID of any security groups to assign to the created instance/cluster
+  - Allows multiple inputs (use one option flag per input).
+- `-t, --tag`
+  - Any custom tags to assign to the cluster and instance, e.g. `purple=true`
+  - Custom tags will not interfere with, nor should include the Aurora Echo management tags
+  - Allows multiple inputs (use one option flag per input).
+- `-h, --minimum-age-hours`
+  - If an existing managed instance has been created within the last `-h` hours, abort creation of a new instance. Defaults to 20.
+- `--help`
+  - Show options and exit.
+
 ### `promote`
 - **What**: Progress a database instance from `new` to `promoted` by updating a record set's DNS entry in Route53 to point to the newly promoted database's endpoint.
 - **How**: Look for a managed instance in RDS that is in the stage `new`, and update the supplied record set's DNS entry to its endpoint. Move any appropriate existing instance's stage from `promoted` to `retired`, and update this instance's stage from `new` to `promoted`.
 - **When**: You may want to run this periodically on a cron job. It will only operate when an instance is in the `new` stage and has status `available`.
+- **State**: Leaves the new db in the `promoted` state
+- **State**: Leaves the previously promoted db in the `retired` state
 
 #### Configuration
 - `-a, --aws-account-number [required]`
@@ -99,6 +137,7 @@ sudo chmod +x /usr/local/bin/aurora-echo
 - **What**: Delete a managed instance and cluster that is in the `retired` stage.
 - **How**: Look for a managed instance in RDS that is in the stage `retired` and delete the instance and its containing cluster. There is no option to make a final snapshot. All automated instance/cluster snapshots **will be deleted**.
 - **When**: You may want to run this periodically on a cron job. It will only operate when a managed instance is in the `retired` stage.
+- **State**: Leaves the db in a non-existent state
 
 #### Configuration
 - `-a, --aws-account-number [required]`
