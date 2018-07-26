@@ -19,6 +19,15 @@ import sys
 import zipfile
 
 
+def collect_single_module_file(module_name):
+    """Return a list of tuples of (absolute_file_path, zip_target_path) for a single module file, like six"""
+    loaded_module = __import__(module_name, globals(), locals(), [], 0)
+    module_file = loaded_module.__file__
+    file_path = os.path.basename(module_file)
+
+    return [(module_file, file_path)]
+
+
 def collect_module_files(module_name, relative_path_in_module):
     """Return a list of tuples of (absolute_file_path, zip_target_path)"""
     loaded_module = __import__(module_name, globals(), locals(), [], 0)
@@ -64,6 +73,7 @@ def main(script_path, output_path):
     module_files.extend(collect_module_files('dateutil', ''))
     module_files.extend(collect_module_files('jmespath', ''))
     module_files.extend(collect_module_files('click', ''))
+    module_files.extend(collect_single_module_file('six'))
 
     # filter out everything but .py's
     filtered_files = [x for x in module_files if x[1].endswith(".py") or x[1].endswith(".json") or x[1].endswith(".pem")]
