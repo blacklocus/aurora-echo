@@ -110,6 +110,8 @@ sudo chmod +x /usr/local/bin/aurora-echo
   - Allows multiple inputs (use one option flag per input).
 - `-h, --minimum-age-hours`
   - If an existing managed instance has been created within the last `-h` hours, abort creation of a new instance. Defaults to 20.
+- `-png, --db-parameter-group-name'`
+  - The database parameter group name to use, e.g. 'custom.aurora5.7'
 - `-i, --interactive`
   - Prompt the user for confirmation before making changes. Defaults to true.
 - `--help`
