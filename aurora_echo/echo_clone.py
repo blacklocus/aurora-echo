@@ -76,7 +76,7 @@ def collect_clone_params(source_cluster_name: str, new_cluster_name: str, db_sub
 
 
 def collect_instance_params(cluster_identifier: str, new_instance_name: str, engine: str, db_instance_class: str,
-            availability_zone: str, tags: list, db_parameter_group_name: str):
+                           availability_zone: str, tags: list, db_parameter_group_name: str):
     """
     Convert parameters into a dict of known values appropriate to be used in an RDS API call.
     :return: params
