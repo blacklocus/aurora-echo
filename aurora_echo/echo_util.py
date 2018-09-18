@@ -129,7 +129,7 @@ class EchoUtil(object):
             click.echo('Found instance in stage {}: {}'.format(desired_stage, chosen_instance['DBInstanceIdentifier']))
             return chosen_instance
 
-    def instance_too_new(self, managed_name: str, min_age_in_hours: int):
+    def instance_too_new(self, managed_name: str, min_age_in_hours: float):
         """
         Have we already made a database in the last n hours?
 
