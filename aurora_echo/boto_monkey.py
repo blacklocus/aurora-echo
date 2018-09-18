@@ -1,22 +1,22 @@
-## Copyright 2016 Ray Holder
 ##
-## Licensed under the Apache License, Version 2.0 (the "License");
-## you may not use this file except in compliance with the License.
-## You may obtain a copy of the License at
+# Copyright 2016 Ray Holder
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ##
-## http://www.apache.org/licenses/LICENSE-2.0
-##
-## Unless required by applicable law or agreed to in writing, software
-## distributed under the License is distributed on an "AS IS" BASIS,
-## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-## See the License for the specific language governing permissions and
-## limitations under the License.
 
 import atexit
-import codecs
 import json
 import os
-import sys
 import tempfile
 import zipfile
 
@@ -32,7 +32,7 @@ try:
     EGG_DIRS = set([os.path.split(x)[0] for x in EGG.namelist() if '/' in x])
     EGG_API_PATHS = [x for x in EGG_DIRS if 'botocore/data/' in x]
     EGG_API_PATHS.extend([x for x in EGG_DIRS if 'boto3/data/' in x])
-except:
+except Exception:
     pass
 
 
@@ -55,7 +55,6 @@ class JSONFileLoader2(object):
         """
         # TODO fix? seems inconsistent with .format usage pattern. Also cast as str?
         return any(x.startswith("%s" % file_path) for x in EGG.namelist())
-
 
     def load_file(self, file_path: str):
         """Attempt to load the file path.
@@ -148,7 +147,7 @@ def list_api_versions(self, service_name: str, type_name: str):
                 if self.file_loader.exists(full_path):
                     known_api_versions.add(api_version[1])
     if not known_api_versions:
-        #raise Exception('service_name: {0}, type_name: {1}'.format(service_name, type_name))
+        # raise Exception('service_name: {0}, type_name: {1}'.format(service_name, type_name))
         raise DataNotFoundError(data_path=service_name)
     return sorted(known_api_versions)
 

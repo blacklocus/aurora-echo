@@ -81,7 +81,6 @@ def collect_cluster_params(cluster_snapshot_identifier: str, new_cluster_name: s
     # Our tags indicating the instance is managed, plus optional user-defined tags
     params['Tags'] = tags  # a list of dicts
 
-
     return params
 
 

@@ -21,8 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 ##
-import aurora_echo.boto_monkey
-from aurora_echo import echo_clone, echo_new, echo_modify, echo_promote, echo_retire
+import aurora_echo.boto_monkey  # noqa: F401
+from aurora_echo import echo_clone, echo_new, echo_modify, echo_promote, echo_retire  # noqa: F401
 from aurora_echo.entry import root
 
 

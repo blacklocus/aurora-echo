@@ -40,7 +40,7 @@ log_prefix = log_prefix_factory(ECHO_CLONE_COMMAND)
 
 
 def collect_clone_params(source_cluster_name: str, new_cluster_name: str, db_subnet_group_name: str,
-                           vpc_security_group_id: list, tags: list):
+                         vpc_security_group_id: list, tags: list):
     """
     Convert parameters into a dict of known values appropriate to be used in an RDS API call.
 
@@ -133,7 +133,7 @@ def create_clone_cluster_and_instance(clone_params: dict, instance_params: dict,
 @click.option('--minimum-age-hours', '-h', default=20)
 @click.option('--interactive', '-i', default=True, type=bool)
 def clone(aws_account_number: str, region: str, source_cluster_name: str, managed_name: str, db_subnet_group_name: str, db_instance_class: str,
-        engine: str, availability_zone: str, vpc_security_group_id: list, tag: list, minimum_age_hours: int, interactive: bool):
+          engine: str, availability_zone: str, vpc_security_group_id: list, tag: list, minimum_age_hours: int, interactive: bool):
     click.echo('{} Starting aurora-echo for {}'.format(log_prefix(), managed_name))
     util = EchoUtil(region, aws_account_number)
     if not util.instance_too_new(managed_name, minimum_age_hours):
