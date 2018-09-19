@@ -69,11 +69,10 @@ def modify_iam(cluster_identifier: str, iam_role_names: tuple, interactive: bool
         click.echo('{} Adding IAM to cluster...'.format(log_prefix()))
 
         for iam_role_arn in iam_role_arn_list:
-            iam_response = rds.add_role_to_db_cluster(DBClusterIdentifier=cluster_identifier, RoleArn=iam_role_arn)
+            rds.add_role_to_db_cluster(DBClusterIdentifier=cluster_identifier, RoleArn=iam_role_arn)
     else:
         # even if they didn't want an IAM added, it still successfully passed through this stage
         click.echo('{} No IAM roles provided. Nothing to do! {}'.format(log_prefix(), cluster_identifier))
-
 
 
 @root.command()

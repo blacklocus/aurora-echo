@@ -42,13 +42,13 @@ def delete_instance(instance: dict, interactive: bool):
         'DBInstanceIdentifier': instance_identifier,
         'SkipFinalSnapshot': True,
     }
-    
+
     cluster_identifier = instance['DBClusterIdentifier']
     cluster_params = {
         'DBClusterIdentifier': cluster_identifier,
         'SkipFinalSnapshot': True,
     }
-    
+
     click.echo('{} Parameters:'.format(log_prefix()))
     click.echo(json.dumps(instance_params, indent=4, sort_keys=True))
     click.echo(json.dumps(cluster_params, indent=4, sort_keys=True))
@@ -58,8 +58,8 @@ def delete_instance(instance: dict, interactive: bool):
                       'along with ALL AUTOMATED BACKUPS?'.format(log_prefix()), abort=True)  # exits entirely if no
 
     # delete the instance first so the cluster is empty, otherwise it'll fail
-    response = rds.delete_db_instance(**instance_params)
-    response = rds.delete_db_cluster(**cluster_params)
+    rds.delete_db_instance(**instance_params)
+    rds.delete_db_cluster(**cluster_params)
 
 
 @root.command()

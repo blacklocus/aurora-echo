@@ -87,7 +87,7 @@ def update_dns(hosted_zone_ids: tuple, record_set_name: str, cluster_endpoint: s
             click.confirm('{} Ready to update DNS record with these settings?'.format(log_prefix()), abort=True)  # exits entirely if no
 
         # update to the found instance endpoint
-        response = route53.change_resource_record_sets(**params)
+        route53.change_resource_record_sets(**params)
         click.echo('{} Success! DNS updated in hosted zone {}'.format(log_prefix(), hosted_zone))
 
 
