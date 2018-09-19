@@ -141,10 +141,11 @@ def create_cluster_and_instance(cluster_params: dict, instance_params: dict, int
 @click.option('--availability-zone', '-az')
 @click.option('--vpc-security-group-id', '-sg', multiple=True)
 @click.option('--tag', '-t', multiple=True)
-@click.option('--minimum-age-hours', '-h', default=20)
+@click.option('--minimum-age-hours', '-h', default=20, type=float)
 @click.option('--interactive', '-i', default=True, type=bool)
+@click.option('--suffix', '-sf', default=None)
 def new(aws_account_number: str, region: str, cluster_snapshot_name: str, managed_name: str, db_subnet_group_name: str, db_instance_class: str,
-        engine: str, availability_zone: str, vpc_security_group_id: list, tag: list, minimum_age_hours: int, interactive: bool):
+        engine: str, availability_zone: str, vpc_security_group_id: list, tag: list, minimum_age_hours: int, interactive: bool, suffix: str):
     click.echo('{} Starting aurora-echo for {}'.format(log_prefix(), managed_name))
     util = EchoUtil(region, aws_account_number)
     if not util.instance_too_new(managed_name, minimum_age_hours):
@@ -152,6 +153,9 @@ def new(aws_account_number: str, region: str, cluster_snapshot_name: str, manage
         cluster_snapshot_identifier = find_snapshot(cluster_snapshot_name)
         if cluster_snapshot_identifier:
             restore_cluster_name = managed_name + '-' + today_string
+
+            if suffix is not None:
+                restore_cluster_name += '-' + suffix
 
             tag_set = util.construct_managed_tag_set(managed_name, ECHO_NEW_STAGE)
             user_tags = util.construct_user_tag_set(tag)

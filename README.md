@@ -74,6 +74,8 @@ sudo chmod +x /usr/local/bin/aurora-echo
   - If an existing managed instance has been created within the last `-h` hours, abort creation of a new instance. Defaults to 20.
 - `-i, --interactive`
   - Prompt the user for confirmation before making changes. Defaults to true.
+- `-sf, --suffix`
+  - An optional suffix to append to the name of new clusters and db instances.
 - `--help`
   - Show options and exit.
 
@@ -114,6 +116,8 @@ sudo chmod +x /usr/local/bin/aurora-echo
   - The database parameter group name to use, e.g. 'custom.aurora5.7'
 - `-i, --interactive`
   - Prompt the user for confirmation before making changes. Defaults to true.
+- `-sf, --suffix`
+  - An optional suffix to append to the name of new clusters and db instances.
 - `--help`
   - Show options and exit.
 
